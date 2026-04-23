@@ -58,8 +58,8 @@ const Auth = () => {
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">
             {mode === "signup"
-              ? "Bind your soul to the realm to begin your ascension."
-              : "Step back into the Iron Realm."}
+              ? "Bind your soul to Gym Mate to begin your ascension."
+              : "Step back into Gym Mate."}
           </p>
         </div>
 
