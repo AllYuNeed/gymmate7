@@ -2,95 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/*
+  MYTHIC FANTASY DESIGN SYSTEM
+  Deep navy realm + arcane gold + ethereal moonlight blue.
+  All colors HSL. Use semantic tokens — no raw colors in components.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core surfaces — deep night realm */
+    --background: 226 50% 7%;          /* #0a0e1f deep abyss */
+    --foreground: 40 30% 92%;          /* parchment */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --surface-deep: 226 50% 5%;        /* darker pits */
+    --surface-raised: 224 42% 14%;     /* #1a2240 castle stone */
+    --surface-glow: 224 42% 18%;       /* hover */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --card: 224 42% 11%;
+    --card-foreground: 40 30% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --popover: 224 45% 9%;
+    --popover-foreground: 40 30% 92%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Arcane gold — primary brand */
+    --primary: 45 65% 53%;             /* #d4af37 */
+    --primary-foreground: 226 50% 7%;
+    --primary-glow: 45 90% 65%;
+    --primary-deep: 38 70% 38%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Moonlight blue — secondary */
+    --secondary: 224 100% 74%;         /* #7b9cff */
+    --secondary-foreground: 226 50% 7%;
+    --secondary-glow: 224 100% 82%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --muted: 224 30% 18%;
+    --muted-foreground: 224 20% 65%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 224 100% 74%;
+    --accent-foreground: 226 50% 7%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 40 30% 95%;
 
-    --radius: 0.5rem;
+    --success: 142 60% 50%;
+    --warning: 35 90% 55%;
 
-    --sidebar-background: 0 0% 98%;
+    /* Rank tier colors */
+    --rank-untrained: 220 10% 45%;
+    --rank-novice: 200 50% 55%;
+    --rank-adept: 142 55% 50%;
+    --rank-veteran: 270 60% 60%;
+    --rank-elite: 25 90% 55%;
+    --rank-legend: 45 90% 60%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --border: 224 35% 22%;
+    --border-bright: 45 50% 40%;
+    --input: 224 35% 18%;
+    --ring: 45 65% 53%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    --radius: 0.625rem;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Gradients — arcane atmosphere */
+    --gradient-realm: radial-gradient(ellipse at top, hsl(224 50% 14%) 0%, hsl(226 50% 7%) 60%, hsl(226 60% 4%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(45 70% 60%) 0%, hsl(38 80% 45%) 100%);
+    --gradient-gold-shine: linear-gradient(135deg, hsl(45 90% 70%) 0%, hsl(45 65% 50%) 50%, hsl(38 70% 38%) 100%);
+    --gradient-arcane: linear-gradient(135deg, hsl(224 100% 74%) 0%, hsl(260 70% 60%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(224 42% 14%) 0%, hsl(224 45% 9%) 100%);
+    --gradient-xp: linear-gradient(90deg, hsl(45 90% 55%) 0%, hsl(38 100% 50%) 50%, hsl(45 95% 65%) 100%);
+    --gradient-sigil: conic-gradient(from 180deg at 50% 50%, hsl(45 90% 60%), hsl(224 100% 74%), hsl(270 70% 60%), hsl(45 90% 60%));
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Shadows — glowing runes */
+    --shadow-gold: 0 0 40px -8px hsl(45 90% 55% / 0.55), 0 0 80px -20px hsl(45 90% 50% / 0.35);
+    --shadow-arcane: 0 0 40px -8px hsl(224 100% 70% / 0.55), 0 0 80px -20px hsl(260 70% 60% / 0.35);
+    --shadow-deep: 0 20px 60px -20px hsl(226 80% 2% / 0.8), 0 8px 20px -8px hsl(226 80% 2% / 0.5);
+    --shadow-rune: inset 0 1px 0 0 hsl(45 70% 60% / 0.2), 0 0 0 1px hsl(45 50% 35% / 0.4);
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    /* Motion */
+    --ease-mystic: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-pulse: cubic-bezier(0.4, 0, 0.6, 1);
 
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar (kept for shadcn compat) */
+    --sidebar-background: 224 45% 9%;
+    --sidebar-foreground: 40 30% 92%;
+    --sidebar-primary: 45 65% 53%;
+    --sidebar-primary-foreground: 226 50% 7%;
+    --sidebar-accent: 224 42% 14%;
+    --sidebar-accent-foreground: 40 30% 92%;
+    --sidebar-border: 224 35% 22%;
+    --sidebar-ring: 45 65% 53%;
   }
 }
 
@@ -99,7 +98,126 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html, body, #root {
+    min-height: 100%;
   }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    background-image: var(--gradient-realm);
+    background-attachment: fixed;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-wide;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
+    color: hsl(var(--primary-glow));
+  }
+}
+
+@layer components {
+  .text-gold {
+    background: var(--gradient-gold-shine);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-arcane {
+    background: var(--gradient-arcane);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .rune-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--border-bright) / 0.6), transparent);
+  }
+
+  .panel {
+    @apply bg-card border border-border rounded-lg;
+    background-image: var(--gradient-card);
+    box-shadow: var(--shadow-deep), var(--shadow-rune);
+  }
+
+  .panel-glow {
+    @apply panel;
+    box-shadow: var(--shadow-deep), var(--shadow-rune), var(--shadow-gold);
+  }
+
+  /* Animated gold border ring */
+  .ring-arcane {
+    position: relative;
+    isolation: isolate;
+  }
+  .ring-arcane::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--gradient-sigil);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    z-index: -1;
+    opacity: 0.7;
+    animation: spin-slow 8s linear infinite;
+  }
+
+  /* Starfield backdrop */
+  .starfield {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, hsl(40 80% 90% / 0.6), transparent 50%),
+      radial-gradient(1px 1px at 70% 80%, hsl(45 90% 70% / 0.5), transparent 50%),
+      radial-gradient(1px 1px at 40% 60%, hsl(224 100% 80% / 0.5), transparent 50%),
+      radial-gradient(2px 2px at 85% 20%, hsl(45 90% 70% / 0.4), transparent 50%),
+      radial-gradient(1px 1px at 10% 80%, hsl(224 100% 80% / 0.4), transparent 50%),
+      radial-gradient(1px 1px at 55% 15%, hsl(40 80% 90% / 0.5), transparent 50%);
+    background-size: 600px 600px;
+    pointer-events: none;
+    opacity: 0.5;
+    animation: drift 60s linear infinite;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: 'Cinzel', 'Times New Roman', serif; }
+  .font-body { font-family: 'Inter', system-ui, sans-serif; }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes drift {
+  from { background-position: 0 0; }
+  to { background-position: 600px 600px; }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 20px -4px hsl(45 90% 55% / 0.4); }
+  50% { box-shadow: 0 0 40px -4px hsl(45 90% 55% / 0.8); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes rune-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px hsl(45 90% 55% / 0.6)); opacity: 0.85; }
+  50% { filter: drop-shadow(0 0 24px hsl(45 90% 65% / 1)); opacity: 1; }
 }
