@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      heroes: {
+        Row: {
+          available_days: number
+          body_type: string
+          class: string
+          coins: number
+          created_at: string
+          equipment: string
+          experience_level: string
+          goal: string
+          hero_name: string
+          id: string
+          injuries: string[]
+          level: number
+          sleep_quality: string
+          streak_days: number
+          streak_freezes: number
+          stress_level: string
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          available_days?: number
+          body_type: string
+          class: string
+          coins?: number
+          created_at?: string
+          equipment: string
+          experience_level: string
+          goal: string
+          hero_name: string
+          id?: string
+          injuries?: string[]
+          level?: number
+          sleep_quality: string
+          streak_days?: number
+          streak_freezes?: number
+          stress_level: string
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          available_days?: number
+          body_type?: string
+          class?: string
+          coins?: number
+          created_at?: string
+          equipment?: string
+          experience_level?: string
+          goal?: string
+          hero_name?: string
+          id?: string
+          injuries?: string[]
+          level?: number
+          sleep_quality?: string
+          streak_days?: number
+          streak_freezes?: number
+          stress_level?: string
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
