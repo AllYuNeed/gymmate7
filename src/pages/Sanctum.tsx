@@ -1,0 +1,161 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Sigil } from "@/components/Sigil";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { HERO_CLASSES, type ClassId } from "@/data/classes";
+
+interface Hero {
+  hero_name: string;
+  class: ClassId;
+  level: number;
+  xp: number;
+  coins: number;
+  streak_days: number;
+  streak_freezes: number;
+}
+
+const xpForLevel = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.5));
+
+const Sanctum = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const [hero, setHero] = useState<Hero | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    supabase
+      .from("heroes")
+      .select("hero_name, class, level, xp, coins, streak_days, streak_freezes")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) {
+          navigate("/awaken");
+          return;
+        }
+        setHero(data as Hero);
+        setLoading(false);
+      });
+  }, [user, authLoading, navigate]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
+  if (loading || !hero) return null;
+
+  const heroClass = HERO_CLASSES[hero.class];
+  const xpNeeded = xpForLevel(hero.level + 1);
+  const xpInLevel = hero.xp;
+  const xpPercent = Math.min(100, (xpInLevel / xpNeeded) * 100);
+
+  return (
+    <main className="relative min-h-screen overflow-hidden pb-20">
+      <div className="starfield" />
+
+      <div className="relative mx-auto max-w-5xl px-6 py-12">
+        {/* Header */}
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            <p className="font-display text-xs uppercase tracking-[0.4em] text-primary/70">◆ The Sanctum ◆</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-gold sm:text-4xl">{hero.hero_name}</h1>
+            <p className="mt-1 font-display text-sm uppercase tracking-widest text-muted-foreground">
+              Lv {hero.level} · {heroClass.name}
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={handleSignOut}>
+            Sign out
+          </Button>
+        </header>
+
+        {/* Hero card */}
+        <section className="mt-8 panel-glow p-8">
+          <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start">
+            <Sigil glyph={heroClass.sigil} size={160} color={heroClass.color} />
+            <div className="flex-1 text-center sm:text-left">
+              <p className="font-display text-xs uppercase tracking-[0.3em] text-secondary">
+                {heroClass.title}
+              </p>
+              <p className="mt-3 italic text-muted-foreground">"{heroClass.lore}"</p>
+              <div className="mt-4 inline-block rounded-md border border-primary/40 bg-primary/5 px-4 py-2 font-display text-xs uppercase tracking-widest text-primary">
+                {heroClass.bonusLabel}
+              </div>
+
+              {/* XP bar */}
+              <div className="mt-6">
+                <div className="mb-2 flex items-center justify-between font-display text-xs uppercase tracking-widest text-muted-foreground">
+                  <span>Experience</span>
+                  <span>{xpInLevel.toLocaleString()} / {xpNeeded.toLocaleString()} XP</span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-surface-deep ring-1 ring-border">
+                  <div
+                    className="h-full rounded-full bg-gradient-xp transition-all duration-700"
+                    style={{ width: `${xpPercent}%`, boxShadow: "0 0 12px hsl(45 90% 60% / 0.6)" }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats */}
+        <section className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <StatCard glyph="✪" label="Coins" value={hero.coins.toLocaleString()} />
+          <StatCard glyph="✦" label="Streak" value={`${hero.streak_days} days`} />
+          <StatCard glyph="❅" label="Freezes" value={`${hero.streak_freezes} / 2`} />
+          <StatCard glyph="⚔" label="Level" value={`${hero.level}`} />
+        </section>
+
+        {/* Coming next teaser */}
+        <section className="mt-10 panel p-8 text-center">
+          <p className="font-display text-xs uppercase tracking-[0.4em] text-secondary">◆ Next Chapter ◆</p>
+          <h2 className="mt-3 font-display text-2xl font-bold text-foreground sm:text-3xl">
+            The Forge awaits...
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
+            Workouts, muscle ranks, daily quests, and the first Boss are being summoned. Your hero stands ready.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <span className="rounded-full border border-border-bright/40 bg-surface-raised/60 px-4 py-1.5 font-display text-xs uppercase tracking-widest text-primary/80">
+              Workouts
+            </span>
+            <span className="rounded-full border border-border-bright/40 bg-surface-raised/60 px-4 py-1.5 font-display text-xs uppercase tracking-widest text-primary/80">
+              17 Muscle Realms
+            </span>
+            <span className="rounded-full border border-border-bright/40 bg-surface-raised/60 px-4 py-1.5 font-display text-xs uppercase tracking-widest text-primary/80">
+              Daily Quests
+            </span>
+            <span className="rounded-full border border-border-bright/40 bg-surface-raised/60 px-4 py-1.5 font-display text-xs uppercase tracking-widest text-primary/80">
+              Boss Battles
+            </span>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+};
+
+function StatCard({ glyph, label, value }: { glyph: string; label: string; value: string }) {
+  return (
+    <div className="panel p-5 text-center transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-gold">
+      <div
+        className="mx-auto mb-2 font-display text-3xl text-primary"
+        style={{ textShadow: "0 0 14px hsl(45 90% 55% / 0.7)" }}
+      >
+        {glyph}
+      </div>
+      <p className="font-display text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="mt-1 font-display text-xl font-bold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+export default Sanctum;
