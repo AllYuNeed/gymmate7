@@ -119,6 +119,14 @@ export const QUIZ: QuizQuestion[] = [
 
 export type QuizAnswers = Partial<Record<QuizQuestionId, string | string[]>>;
 
+export interface ProfileData {
+  age: number;
+  gender: "male" | "female" | "other";
+  height_cm: number;
+  weight_kg: number;
+  units: "metric" | "imperial";
+}
+
 // Compute the player's class from their answers
 export function computeClass(answers: QuizAnswers): ClassId {
   const goal = answers.goal as string;
@@ -128,13 +136,11 @@ export function computeClass(answers: QuizAnswers): ClassId {
   const days = parseInt((answers.available_days as string) || "3", 10);
   const injuries = (answers.injuries as string[]) ?? [];
 
-  // Severe recovery deficit → Mystic
   const hasInjuries = injuries.length > 0 && !injuries.includes("none");
   if (sleep === "poor" || stress === "high" || hasInjuries) {
     if (sleep === "poor" && (stress === "high" || hasInjuries)) return "recovery_focused";
   }
 
-  // Top-tier dedication → Ascendant
   if (experience === "master" && days >= 5 && sleep !== "poor") return "elite_athlete";
 
   switch (goal) {
