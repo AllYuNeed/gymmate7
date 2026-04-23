@@ -1,0 +1,124 @@
+// Generates a personalized AI weekly workout routine for the signed-in hero.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!;
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const { data: hero } = await supabase.from("heroes").select("*").eq("user_id", user.id).maybeSingle();
+    if (!hero) return new Response(JSON.stringify({ error: "Hero not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const systemPrompt = `You are a master strength coach for a mythic-fantasy fitness RPG. Build a weekly workout schedule fully personalized to the hero. Respond ONLY via the provided tool. Use compound lifts as backbone, accessories for weak points, and avoid exercises that aggravate the hero's injuries. Match training days to "available_days". Use evidence-based set/rep schemes. Keep names of exercises real and familiar.`;
+    const userPrompt = `Hero profile:
+- Class: ${hero.class}
+- Goal: ${hero.goal}
+- Experience: ${hero.experience_level}
+- Body type: ${hero.body_type}
+- Age: ${hero.age ?? "?"}, Gender: ${hero.gender ?? "?"}
+- Height: ${hero.height_cm ?? "?"}cm, Weight: ${hero.weight_kg ?? "?"}kg
+- Equipment: ${hero.equipment}
+- Days/week available: ${hero.available_days}
+- Sleep: ${hero.sleep_quality}, Stress: ${hero.stress_level}
+- Injuries: ${(hero.injuries ?? []).join(", ") || "none"}
+
+Generate a routine matching ${hero.available_days} training days. Use mon/tue/wed style day labels.`;
+
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        tools: [{
+          type: "function",
+          function: {
+            name: "create_routine",
+            description: "Return a structured weekly workout routine.",
+            parameters: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                summary: { type: "string" },
+                days_per_week: { type: "integer" },
+                schedule: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      day: { type: "string", description: "e.g. Mon, Tue" },
+                      focus: { type: "string", description: "e.g. Push, Legs, Full Body" },
+                      exercises: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            name: { type: "string" },
+                            sets: { type: "integer" },
+                            reps: { type: "string", description: "e.g. 6-8 or AMRAP or 45s" },
+                            notes: { type: "string" },
+                          },
+                          required: ["name", "sets", "reps"],
+                          additionalProperties: false,
+                        },
+                      },
+                    },
+                    required: ["day", "focus", "exercises"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["title", "summary", "days_per_week", "schedule"],
+              additionalProperties: false,
+            },
+          },
+        }],
+        tool_choice: { type: "function", function: { name: "create_routine" } },
+      }),
+    });
+
+    if (!aiRes.ok) {
+      if (aiRes.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded — try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (aiRes.status === 402) return new Response(JSON.stringify({ error: "Lovable AI credits required. Add funds in Settings → Workspace → Usage." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const t = await aiRes.text();
+      console.error("AI gateway error:", aiRes.status, t);
+      throw new Error("AI generation failed");
+    }
+    const aiJson = await aiRes.json();
+    const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall) throw new Error("AI returned no routine");
+    const routine = JSON.parse(toolCall.function.arguments);
+
+    await supabase.from("workout_routines").update({ is_active: false }).eq("user_id", user.id).eq("is_active", true);
+    const { data: inserted, error: insErr } = await supabase.from("workout_routines").insert({
+      user_id: user.id,
+      title: routine.title,
+      summary: routine.summary,
+      source: "ai",
+      days_per_week: routine.days_per_week,
+      schedule: routine.schedule,
+    }).select().single();
+    if (insErr) throw insErr;
+
+    return new Response(JSON.stringify({ ok: true, routine: inserted }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (e) {
+    console.error("generate-routine error:", e);
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+});
