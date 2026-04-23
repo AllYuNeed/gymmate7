@@ -91,14 +91,14 @@ const Routines = () => {
     const r = PRESETS[key]();
     // mark previous inactive
     await supabase.from("workout_routines").update({ is_active: false }).eq("user_id", user.id).eq("is_active", true);
-    const { data } = await supabase.from("workout_routines").insert({
+    const { data } = await supabase.from("workout_routines").insert([{
       user_id: user.id,
       title: r.title,
       summary: r.summary,
       source: "preset",
       days_per_week: r.days_per_week,
-      schedule: r.schedule,
-    }).select().single();
+      schedule: r.schedule as unknown as never,
+    }]).select().single();
     if (data) setRoutine(data as unknown as Routine);
     toast.success("Preset routine activated!");
   };
