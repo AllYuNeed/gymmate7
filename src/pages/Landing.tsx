@@ -17,13 +17,13 @@ const Landing = () => {
         </div>
 
         <p className="mb-4 font-display text-xs uppercase tracking-[0.4em] text-primary/80">
-          ◆ The Codex of Iron ◆
+          ◆ Gym Mate ◆
         </p>
 
         <h1 className="font-display text-5xl font-black leading-[1.05] sm:text-7xl md:text-8xl">
-          <span className="text-gold">Ascend</span>
+          <span className="text-gold">Level Up</span>
           <br />
-          <span className="text-foreground/90">the Iron Realm</span>
+          <span className="text-foreground/90">Your Real Life</span>
         </h1>
 
         <p className="mx-auto mt-8 max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:text-lg">
