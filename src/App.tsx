@@ -14,6 +14,10 @@ import Quests from "./pages/Quests.tsx";
 import Boss from "./pages/Boss.tsx";
 import Diet from "./pages/Diet.tsx";
 import Routines from "./pages/Routines.tsx";
+import Leaderboard from "./pages/Leaderboard.tsx";
+import Guilds from "./pages/Guilds.tsx";
+import GuildDetail from "./pages/GuildDetail.tsx";
+import PlanBuilder from "./pages/PlanBuilder.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -36,6 +40,10 @@ const App = () => (
             <Route path="/boss" element={<Boss />} />
             <Route path="/diet" element={<Diet />} />
             <Route path="/routines" element={<Routines />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/guilds" element={<Guilds />} />
+            <Route path="/guilds/:id" element={<GuildDetail />} />
+            <Route path="/plan-builder" element={<PlanBuilder />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppShell>

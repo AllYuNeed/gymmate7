@@ -17,18 +17,18 @@ const Landing = () => {
         </div>
 
         <p className="mb-4 font-display text-xs uppercase tracking-[0.4em] text-primary/80">
-          ◆ Gym Mate ◆
+          ◆ Mortal Gyms ◆
         </p>
 
         <h1 className="font-display text-5xl font-black leading-[1.05] sm:text-7xl md:text-8xl">
-          <span className="text-gold">Level Up</span>
+          <span className="text-gold">Train. Compete.</span>
           <br />
-          <span className="text-foreground/90">Your Real Life</span>
+          <span className="text-foreground/90">Ascend.</span>
         </h1>
 
         <p className="mx-auto mt-8 max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:text-lg">
-          A fitness RPG where every rep forges your hero. Earn XP, rank your muscles,
-          conquer monthly bosses, and level your character — in real life.
+          The competitive fitness RPG. Forge XP from every rep, raid bosses with your guild,
+          and climb the global leaderboard of mortals turning iron into legend.
         </p>
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
@@ -64,7 +64,7 @@ const Landing = () => {
         </div>
 
         <p className="mt-16 font-display text-xs uppercase tracking-[0.3em] text-muted-foreground/60">
-          ✦ Six classes · 17 muscle realms · monthly bosses ✦
+          ✦ Guilds · Global Top 100 · 17 muscle realms · monthly bosses ✦
         </p>
       </section>
     </main>

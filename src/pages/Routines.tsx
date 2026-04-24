@@ -127,6 +127,11 @@ const Routines = () => {
             <Button variant="rune" size="sm" onClick={() => usePreset("full_body")}>Full 3d</Button>
           </div>
         </div>
+        <div className="mt-3">
+          <Button variant="rune" className="w-full" onClick={() => navigate("/plan-builder")}>
+            ⚒ Build a Custom Plan (Workout & Diet)
+          </Button>
+        </div>
       </section>
 
       {!routine && (

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { EXERCISES, MUSCLE_BY_ID } from "@/data/muscles";
 import { setXp } from "@/lib/xp";
+import { addWeeklyXp } from "@/lib/social";
 import { toast } from "sonner";
 
 interface RecentLog {
@@ -73,18 +74,39 @@ const Forge = () => {
         .single();
       if (logErr) throw logErr;
 
-      // Update hero XP and coins
-      const { data: hero } = await supabase.from("heroes").select("xp, level, coins, streak_days").eq("user_id", user.id).single();
+      // Update hero XP and coins (and weekly XP for leaderboard)
+      const { data: hero } = await supabase
+        .from("heroes")
+        .select("xp, level, coins, streak_days, weekly_xp, weekly_xp_reset_at")
+        .eq("user_id", user.id)
+        .single();
       if (hero) {
         const newXp = (hero.xp ?? 0) + totalXp;
         const newCoins = (hero.coins ?? 0) + Math.round(totalXp / 5);
-        // simple level-up
         const xpForLvl = (l: number) => Math.floor(100 * Math.pow(l, 1.5));
         let level = hero.level ?? 1;
         let consumed = 0;
         while (newXp - consumed >= xpForLvl(level + 1)) { consumed += xpForLvl(level + 1); level++; }
-        await supabase.from("heroes").update({ xp: newXp, level, coins: newCoins }).eq("user_id", user.id);
+        const weekly = addWeeklyXp(hero.weekly_xp ?? 0, hero.weekly_xp_reset_at ?? new Date().toISOString(), totalXp);
+        await supabase.from("heroes").update({
+          xp: newXp,
+          level,
+          coins: newCoins,
+          weekly_xp: weekly.weekly_xp,
+          weekly_xp_reset_at: weekly.weekly_xp_reset_at,
+        }).eq("user_id", user.id);
         if (level > (hero.level ?? 1)) toast.success(`✦ LEVEL UP! Lv ${level}`, { duration: 4000 });
+
+        // Add XP to all guilds the user belongs to
+        const { data: memberships } = await supabase
+          .from("guild_members")
+          .select("id, guild_id, contributed_xp")
+          .eq("user_id", user.id);
+        for (const m of memberships ?? []) {
+          await supabase.from("guild_members").update({ contributed_xp: m.contributed_xp + totalXp }).eq("id", m.id);
+          const { data: g } = await supabase.from("guilds").select("total_xp").eq("id", m.guild_id).maybeSingle();
+          if (g) await supabase.from("guilds").update({ total_xp: g.total_xp + totalXp }).eq("id", m.guild_id);
+        }
       }
 
       // Distribute muscle XP

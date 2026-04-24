@@ -24,6 +24,10 @@ const Onboarding = () => {
     height_cm: 175,
     weight_kg: 75,
     units: "metric",
+    username: "",
+    gym_name: "",
+    country: "",
+    city: "",
   });
   const [heroName, setHeroName] = useState("");
   const [revealing, setRevealing] = useState(false);
@@ -66,7 +70,12 @@ const Onboarding = () => {
 
   const canAdvance = () => {
     if (isProfileStep) {
-      return profile.age >= 12 && profile.age <= 100 && profile.height_cm > 80 && profile.weight_kg > 25;
+      return (
+        profile.age >= 12 && profile.age <= 100 &&
+        profile.height_cm > 80 && profile.weight_kg > 25 &&
+        profile.username.trim().length >= 3 &&
+        /^[a-zA-Z0-9_]+$/.test(profile.username.trim())
+      );
     }
     if (!currentQuestion) return true;
     const v = answers[currentQuestion.id];
@@ -109,6 +118,10 @@ const Onboarding = () => {
         height_cm: profile.height_cm,
         weight_kg: profile.weight_kg,
         units: profile.units,
+        username: profile.username.trim().toLowerCase(),
+        gym_name: profile.gym_name.trim() || null,
+        country: profile.country.trim() || null,
+        city: profile.city.trim() || null,
       });
       if (error) throw error;
 
@@ -219,7 +232,7 @@ const Onboarding = () => {
                 Inscribe your form into the codex.
               </h2>
               <p className="mt-4 text-center text-sm italic text-muted-foreground sm:text-base">
-                Age, gender, and stature shape every quest, plan, and ritual we forge for you.
+                Your handle, gym, and stature shape every quest, plan, and leaderboard rank.
               </p>
 
               <div className="mt-10 panel p-8 space-y-6">
@@ -343,6 +356,67 @@ const Onboarding = () => {
                     }}
                     className="mt-2 bg-surface-deep font-display text-lg"
                   />
+                </div>
+
+                <div className="rune-divider" />
+                <p className="text-center font-display text-xs uppercase tracking-[0.3em] text-secondary">◆ Banner & Allegiance ◆</p>
+
+                {/* Username */}
+                <div>
+                  <Label htmlFor="username" className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+                    Username (your unique handle)
+                  </Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    minLength={3}
+                    maxLength={20}
+                    value={profile.username}
+                    onChange={(e) => setProfile((p) => ({ ...p, username: e.target.value.replace(/[^a-zA-Z0-9_]/g, "") }))}
+                    className="mt-2 bg-surface-deep font-display text-lg lowercase"
+                    placeholder="iron_aria"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">3-20 chars. Letters, numbers, underscores only. Shown on the leaderboard.</p>
+                </div>
+
+                {/* Gym name */}
+                <div>
+                  <Label htmlFor="gym" className="font-display text-xs uppercase tracking-widest text-muted-foreground">Gym Name</Label>
+                  <Input
+                    id="gym"
+                    type="text"
+                    maxLength={60}
+                    value={profile.gym_name}
+                    onChange={(e) => setProfile((p) => ({ ...p, gym_name: e.target.value }))}
+                    className="mt-2 bg-surface-deep font-display text-lg"
+                    placeholder="Iron Forge Gym"
+                  />
+                </div>
+
+                {/* Country / City */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="font-display text-xs uppercase tracking-widest text-muted-foreground">Country</Label>
+                    <Input
+                      type="text"
+                      maxLength={40}
+                      value={profile.country}
+                      onChange={(e) => setProfile((p) => ({ ...p, country: e.target.value }))}
+                      className="mt-2 bg-surface-deep font-display text-lg"
+                      placeholder="USA"
+                    />
+                  </div>
+                  <div>
+                    <Label className="font-display text-xs uppercase tracking-widest text-muted-foreground">City</Label>
+                    <Input
+                      type="text"
+                      maxLength={40}
+                      value={profile.city}
+                      onChange={(e) => setProfile((p) => ({ ...p, city: e.target.value }))}
+                      className="mt-2 bg-surface-deep font-display text-lg"
+                      placeholder="Brooklyn"
+                    />
+                  </div>
                 </div>
               </div>
 
