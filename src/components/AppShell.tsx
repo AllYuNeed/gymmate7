@@ -8,12 +8,13 @@ const TABS = [
   { to: "/quests", label: "Quests", glyph: "✦" },
   { to: "/boss", label: "Boss", glyph: "☠" },
   { to: "/diet", label: "Diet", glyph: "❀" },
-  { to: "/routines", label: "Routines", glyph: "✠" },
+  { to: "/routines", label: "Plans", glyph: "✠" },
+  { to: "/leaderboard", label: "Ranks", glyph: "♛" },
+  { to: "/guilds", label: "Guilds", glyph: "♆" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
-  // Hide nav on auth/onboarding/landing
   const hideNav = ["/", "/auth", "/awaken"].includes(location.pathname);
 
   return (
@@ -28,13 +29,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-surface-deep/95 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-3xl items-stretch justify-between gap-1 px-2 py-2">
+      <div className="mx-auto flex max-w-4xl items-stretch justify-between gap-1 overflow-x-auto px-2 py-2">
         {TABS.map((t) => (
           <NavLink
             key={t.to}
             to={t.to}
             className={({ isActive }) =>
-              `group flex flex-1 flex-col items-center justify-center rounded-md px-1.5 py-1.5 text-[10px] font-display uppercase tracking-widest transition-all ${
+              `group flex min-w-[58px] flex-1 flex-col items-center justify-center rounded-md px-1 py-1.5 text-[10px] font-display uppercase tracking-widest transition-all ${
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-primary/80"
