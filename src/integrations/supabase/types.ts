@@ -59,6 +59,109 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_diet_plans: {
+        Row: {
+          carbs_g: number | null
+          created_at: string
+          daily_calories: number | null
+          fats_g: number | null
+          guild_id: string | null
+          id: string
+          is_template: boolean
+          meals: Json
+          owner_user_id: string
+          protein_g: number | null
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          carbs_g?: number | null
+          created_at?: string
+          daily_calories?: number | null
+          fats_g?: number | null
+          guild_id?: string | null
+          id?: string
+          is_template?: boolean
+          meals?: Json
+          owner_user_id: string
+          protein_g?: number | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          carbs_g?: number | null
+          created_at?: string
+          daily_calories?: number | null
+          fats_g?: number | null
+          guild_id?: string | null
+          id?: string
+          is_template?: boolean
+          meals?: Json
+          owner_user_id?: string
+          protein_g?: number | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_diet_plans_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_workout_plans: {
+        Row: {
+          created_at: string
+          days_per_week: number
+          guild_id: string | null
+          id: string
+          is_template: boolean
+          owner_user_id: string
+          schedule: Json
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_per_week?: number
+          guild_id?: string | null
+          id?: string
+          is_template?: boolean
+          owner_user_id: string
+          schedule?: Json
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_per_week?: number
+          guild_id?: string | null
+          id?: string
+          is_template?: boolean
+          owner_user_id?: string
+          schedule?: Json
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_workout_plans_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_quests: {
         Row: {
           coin_reward: number
@@ -146,18 +249,174 @@ export type Database = {
         }
         Relationships: []
       }
+      guild_members: {
+        Row: {
+          contributed_xp: number
+          guild_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          contributed_xp?: number
+          guild_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          contributed_xp?: number
+          guild_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_members_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_messages: {
+        Row: {
+          created_at: string
+          guild_id: string
+          id: string
+          message: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          guild_id: string
+          id?: string
+          message: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          guild_id?: string
+          id?: string
+          message?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_messages_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_quests: {
+        Row: {
+          created_at: string
+          current_xp: number
+          description: string | null
+          ends_at: string
+          guild_id: string
+          id: string
+          reward: string | null
+          starts_at: string
+          target_xp: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          current_xp?: number
+          description?: string | null
+          ends_at?: string
+          guild_id: string
+          id?: string
+          reward?: string | null
+          starts_at?: string
+          target_xp?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          current_xp?: number
+          description?: string | null
+          ends_at?: string
+          guild_id?: string
+          id?: string
+          reward?: string | null
+          starts_at?: string
+          target_xp?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_quests_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guilds: {
+        Row: {
+          country: string | null
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          invite_code: string
+          leader_user_id: string
+          name: string
+          total_xp: number
+          updated_at: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          invite_code: string
+          leader_user_id: string
+          name: string
+          total_xp?: number
+          updated_at?: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          invite_code?: string
+          leader_user_id?: string
+          name?: string
+          total_xp?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       heroes: {
         Row: {
           age: number | null
           available_days: number
           body_type: string
+          city: string | null
           class: string
           coins: number
+          country: string | null
           created_at: string
           equipment: string
           experience_level: string
           gender: string | null
           goal: string
+          gym_name: string | null
           height_cm: number | null
           hero_name: string
           id: string
@@ -170,6 +429,9 @@ export type Database = {
           units: string
           updated_at: string
           user_id: string
+          username: string | null
+          weekly_xp: number
+          weekly_xp_reset_at: string
           weight_kg: number | null
           xp: number
         }
@@ -177,13 +439,16 @@ export type Database = {
           age?: number | null
           available_days?: number
           body_type: string
+          city?: string | null
           class: string
           coins?: number
+          country?: string | null
           created_at?: string
           equipment: string
           experience_level: string
           gender?: string | null
           goal: string
+          gym_name?: string | null
           height_cm?: number | null
           hero_name: string
           id?: string
@@ -196,6 +461,9 @@ export type Database = {
           units?: string
           updated_at?: string
           user_id: string
+          username?: string | null
+          weekly_xp?: number
+          weekly_xp_reset_at?: string
           weight_kg?: number | null
           xp?: number
         }
@@ -203,13 +471,16 @@ export type Database = {
           age?: number | null
           available_days?: number
           body_type?: string
+          city?: string | null
           class?: string
           coins?: number
+          country?: string | null
           created_at?: string
           equipment?: string
           experience_level?: string
           gender?: string | null
           goal?: string
+          gym_name?: string | null
           height_cm?: number | null
           hero_name?: string
           id?: string
@@ -222,6 +493,9 @@ export type Database = {
           units?: string
           updated_at?: string
           user_id?: string
+          username?: string | null
+          weekly_xp?: number
+          weekly_xp_reset_at?: string
           weight_kg?: number | null
           xp?: number
         }
@@ -256,6 +530,54 @@ export type Database = {
           xp?: number
         }
         Relationships: []
+      }
+      plan_assignments: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          created_at: string
+          diet_plan_id: string | null
+          id: string
+          note: string | null
+          plan_kind: string
+          workout_plan_id: string | null
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          created_at?: string
+          diet_plan_id?: string | null
+          id?: string
+          note?: string | null
+          plan_kind: string
+          workout_plan_id?: string | null
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          created_at?: string
+          diet_plan_id?: string | null
+          id?: string
+          note?: string | null
+          plan_kind?: string
+          workout_plan_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_assignments_diet_plan_id_fkey"
+            columns: ["diet_plan_id"]
+            isOneToOne: false
+            referencedRelation: "custom_diet_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_assignments_workout_plan_id_fkey"
+            columns: ["workout_plan_id"]
+            isOneToOne: false
+            referencedRelation: "custom_workout_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workout_logs: {
         Row: {
@@ -340,7 +662,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_diet_plan_access: {
+        Args: { _plan_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_workout_plan_access: {
+        Args: { _plan_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_guild_leader: {
+        Args: { _guild_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_guild_member: {
+        Args: { _guild_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
