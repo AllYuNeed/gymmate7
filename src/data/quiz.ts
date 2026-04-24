@@ -125,6 +125,10 @@ export interface ProfileData {
   height_cm: number;
   weight_kg: number;
   units: "metric" | "imperial";
+  username: string;
+  gym_name: string;
+  country: string;
+  city: string;
 }
 
 // Compute the player's class from their answers

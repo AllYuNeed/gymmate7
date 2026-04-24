@@ -24,6 +24,10 @@ const Onboarding = () => {
     height_cm: 175,
     weight_kg: 75,
     units: "metric",
+    username: "",
+    gym_name: "",
+    country: "",
+    city: "",
   });
   const [heroName, setHeroName] = useState("");
   const [revealing, setRevealing] = useState(false);
@@ -66,7 +70,12 @@ const Onboarding = () => {
 
   const canAdvance = () => {
     if (isProfileStep) {
-      return profile.age >= 12 && profile.age <= 100 && profile.height_cm > 80 && profile.weight_kg > 25;
+      return (
+        profile.age >= 12 && profile.age <= 100 &&
+        profile.height_cm > 80 && profile.weight_kg > 25 &&
+        profile.username.trim().length >= 3 &&
+        /^[a-zA-Z0-9_]+$/.test(profile.username.trim())
+      );
     }
     if (!currentQuestion) return true;
     const v = answers[currentQuestion.id];
@@ -109,6 +118,10 @@ const Onboarding = () => {
         height_cm: profile.height_cm,
         weight_kg: profile.weight_kg,
         units: profile.units,
+        username: profile.username.trim().toLowerCase(),
+        gym_name: profile.gym_name.trim() || null,
+        country: profile.country.trim() || null,
+        city: profile.city.trim() || null,
       });
       if (error) throw error;
 
@@ -219,7 +232,7 @@ const Onboarding = () => {
                 Inscribe your form into the codex.
               </h2>
               <p className="mt-4 text-center text-sm italic text-muted-foreground sm:text-base">
-                Age, gender, and stature shape every quest, plan, and ritual we forge for you.
+                Your handle, gym, and stature shape every quest, plan, and leaderboard rank.
               </p>
 
               <div className="mt-10 panel p-8 space-y-6">
