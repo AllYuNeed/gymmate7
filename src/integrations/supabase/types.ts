@@ -491,6 +491,7 @@ export type Database = {
         Row: {
           age: number | null
           available_days: number
+          avatar_url: string | null
           body_type: string
           city: string | null
           class: string
@@ -526,6 +527,7 @@ export type Database = {
         Insert: {
           age?: number | null
           available_days?: number
+          avatar_url?: string | null
           body_type: string
           city?: string | null
           class: string
@@ -561,6 +563,7 @@ export type Database = {
         Update: {
           age?: number | null
           available_days?: number
+          avatar_url?: string | null
           body_type?: string
           city?: string | null
           class?: string
