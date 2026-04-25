@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { GuildBossPanel } from "@/components/GuildBossPanel";
 
 interface Guild {
   id: string;
@@ -175,6 +176,13 @@ const GuildDetail = () => {
           <Button variant="ghost" size="sm" onClick={leave} className="mt-4">Leave Guild</Button>
         )}
       </header>
+
+      <GuildBossPanel
+        guildId={guild.id}
+        isLeader={guild.leader_user_id === user?.id}
+        isMember={isMember}
+        memberCount={members.length}
+      />
 
       <div className="mt-8 grid gap-6 md:grid-cols-[1fr_1.4fr]">
         {/* Members */}
