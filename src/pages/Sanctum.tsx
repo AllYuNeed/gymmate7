@@ -128,6 +128,7 @@ const Sanctum = () => {
                 </span>
               </button>
               <Sigil glyph={heroClass.sigil} size={80} color={heroClass.color} />
+            </div>
             <div className="flex-1 text-center sm:text-left">
               <p className="font-display text-xs uppercase tracking-[0.3em] text-secondary">
                 {heroClass.title}
