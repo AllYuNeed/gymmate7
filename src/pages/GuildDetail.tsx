@@ -124,11 +124,25 @@ const GuildDetail = () => {
     if (!user || !id || !draft.trim()) return;
     setSending(true);
     try {
+      const text = draft.trim().slice(0, 500);
       const { error } = await supabase.from("guild_messages").insert({
-        guild_id: id, user_id: user.id, message: draft.trim().slice(0, 500),
+        guild_id: id, user_id: user.id, message: text,
       });
       if (error) throw error;
       setDraft("");
+      // Notify other guild members via push
+      const recipients = members.filter((m) => m.user_id !== user.id).map((m) => m.user_id);
+      if (recipients.length > 0) {
+        const senderName = members.find((m) => m.user_id === user.id)?.hero_name ?? "A guildmate";
+        void supabase.functions.invoke("send-push", {
+          body: {
+            user_ids: recipients,
+            title: `${guild?.icon ?? "✉"} ${guild?.name ?? "Guild"}`,
+            body: `${senderName}: ${text.slice(0, 80)}`,
+            url: `/guilds/${id}`,
+          },
+        });
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to send");
     } finally {
