@@ -249,6 +249,91 @@ export type Database = {
         }
         Relationships: []
       }
+      guild_boss_damage: {
+        Row: {
+          damage: number
+          guild_boss_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          damage?: number
+          guild_boss_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          damage?: number
+          guild_boss_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_boss_damage_guild_boss_id_fkey"
+            columns: ["guild_boss_id"]
+            isOneToOne: false
+            referencedRelation: "guild_bosses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_bosses: {
+        Row: {
+          boss_lore: string | null
+          boss_name: string
+          boss_sigil: string
+          created_at: string
+          current_hp: number
+          defeated_at: string | null
+          guild_id: string
+          id: string
+          loot: string[]
+          max_hp: number
+          month_key: string
+          status: string
+        }
+        Insert: {
+          boss_lore?: string | null
+          boss_name: string
+          boss_sigil?: string
+          created_at?: string
+          current_hp: number
+          defeated_at?: string | null
+          guild_id: string
+          id?: string
+          loot?: string[]
+          max_hp: number
+          month_key: string
+          status?: string
+        }
+        Update: {
+          boss_lore?: string | null
+          boss_name?: string
+          boss_sigil?: string
+          created_at?: string
+          current_hp?: number
+          defeated_at?: string | null
+          guild_id?: string
+          id?: string
+          loot?: string[]
+          max_hp?: number
+          month_key?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_bosses_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_members: {
         Row: {
           contributed_xp: number
@@ -421,7 +506,10 @@ export type Database = {
           hero_name: string
           id: string
           injuries: string[]
+          last_workout_date: string | null
           level: number
+          monthly_xp: number
+          monthly_xp_reset_at: string
           sleep_quality: string
           streak_days: number
           streak_freezes: number
@@ -453,7 +541,10 @@ export type Database = {
           hero_name: string
           id?: string
           injuries?: string[]
+          last_workout_date?: string | null
           level?: number
+          monthly_xp?: number
+          monthly_xp_reset_at?: string
           sleep_quality: string
           streak_days?: number
           streak_freezes?: number
@@ -485,7 +576,10 @@ export type Database = {
           hero_name?: string
           id?: string
           injuries?: string[]
+          last_workout_date?: string | null
           level?: number
+          monthly_xp?: number
+          monthly_xp_reset_at?: string
           sleep_quality?: string
           streak_days?: number
           streak_freezes?: number
@@ -578,6 +672,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       workout_logs: {
         Row: {
