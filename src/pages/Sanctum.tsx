@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sigil } from "@/components/Sigil";
+import { HeroAvatar } from "@/components/HeroAvatar";
+import { AvatarPicker } from "@/components/AvatarPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { HERO_CLASSES, type ClassId } from "@/data/classes";
@@ -16,6 +18,7 @@ interface Hero {
   coins: number;
   streak_days: number;
   streak_freezes: number;
+  avatar_url: string | null;
 }
 
 const xpForLevel = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.5));
