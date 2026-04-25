@@ -24,8 +24,7 @@ Deno.serve(async (req) => {
     .eq("completed", false);
   const questUsers = Array.from(new Set((quests ?? []).map((q: any) => q.user_id)));
 
-  // Streak warning: users whose last_workout_date is yesterday or older with streak > 0
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  // Streak warning: users whose last_workout_date is older than today with streak > 0
   const { data: streakRisk } = await supabase
     .from("heroes")
     .select("user_id")

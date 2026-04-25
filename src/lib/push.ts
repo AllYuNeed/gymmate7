@@ -1,12 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Replace this with your real VAPID public key (set in Supabase secrets too).
-// We hard-code it client-side because it must be available at subscribe time
-// and the browser only needs the *public* half.
-const VAPID_PUBLIC_KEY =
-  (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ??
-  // Public key is safe to expose. If empty, push opt-in will surface an error.
-  "";
+let cachedKey: string | null = null;
+async function getVapidPublicKey(): Promise<string> {
+  if (cachedKey) return cachedKey;
+  const { data, error } = await supabase.functions.invoke("vapid-key", { method: "GET" });
+  if (error) throw error;
+  cachedKey = (data as { key?: string })?.key ?? "";
+  return cachedKey;
+}
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -23,7 +24,9 @@ export function pushSupported(): boolean {
 
 export async function subscribePush(userId: string): Promise<{ ok: boolean; error?: string }> {
   if (!pushSupported()) return { ok: false, error: "Push not supported in this browser." };
-  if (!VAPID_PUBLIC_KEY) return { ok: false, error: "Push key not configured." };
+  let vapidKey = "";
+  try { vapidKey = await getVapidPublicKey(); } catch { /* noop */ }
+  if (!vapidKey) return { ok: false, error: "Push key not configured on server." };
 
   try {
     const reg = await navigator.serviceWorker.register("/sw.js");
@@ -34,7 +37,7 @@ export async function subscribePush(userId: string): Promise<{ ok: boolean; erro
     if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY).buffer as ArrayBuffer,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey).buffer as ArrayBuffer,
       });
     }
     const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
