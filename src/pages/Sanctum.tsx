@@ -188,6 +188,17 @@ const Sanctum = () => {
           </div>
         </section>
       </div>
+
+      {user && (
+        <AvatarPicker
+          open={avatarOpen}
+          onOpenChange={setAvatarOpen}
+          userId={user.id}
+          currentAvatarUrl={hero.avatar_url}
+          heroName={hero.hero_name}
+          onSaved={(url) => setHero((h) => (h ? { ...h, avatar_url: url } : h))}
+        />
+      )}
     </main>
   );
 };
