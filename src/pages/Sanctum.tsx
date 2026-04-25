@@ -96,9 +96,16 @@ const Sanctum = () => {
               Lv {hero.level} · {heroClass.name}
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
-            Sign out
-          </Button>
+          <div className="flex flex-col gap-2">
+            {pushSupported() && (
+              <Button variant="rune" size="sm" onClick={togglePush} disabled={pushBusy}>
+                {pushOn ? "🔕 Mute" : "🔔 Notify"}
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              Sign out
+            </Button>
+          </div>
         </header>
 
         {/* Hero card */}
