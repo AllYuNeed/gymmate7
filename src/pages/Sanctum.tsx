@@ -30,6 +30,7 @@ const Sanctum = () => {
   const [loading, setLoading] = useState(true);
   const [pushOn, setPushOn] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
 
   useEffect(() => {
     if (!pushSupported() || !user) return;
@@ -60,7 +61,7 @@ const Sanctum = () => {
     }
     supabase
       .from("heroes")
-      .select("hero_name, class, level, xp, coins, streak_days, streak_freezes")
+      .select("hero_name, class, level, xp, coins, streak_days, streak_freezes, avatar_url")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -114,7 +115,19 @@ const Sanctum = () => {
         {/* Hero card */}
         <section className="mt-8 panel-glow p-8">
           <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start">
-            <Sigil glyph={heroClass.sigil} size={160} color={heroClass.color} />
+            <div className="relative flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setAvatarOpen(true)}
+                className="group relative outline-none"
+                aria-label="Change avatar"
+              >
+                <HeroAvatar avatarUrl={hero.avatar_url} name={hero.hero_name} size={140} glow />
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full border border-primary/60 bg-surface-deep px-2.5 py-0.5 font-display text-[10px] uppercase tracking-widest text-primary opacity-0 transition group-hover:opacity-100">
+                  Edit
+                </span>
+              </button>
+              <Sigil glyph={heroClass.sigil} size={80} color={heroClass.color} />
             <div className="flex-1 text-center sm:text-left">
               <p className="font-display text-xs uppercase tracking-[0.3em] text-secondary">
                 {heroClass.title}
