@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { HeroAvatar } from "@/components/HeroAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -14,6 +15,7 @@ interface Row {
   xp: number;
   weekly_xp: number;
   class: string;
+  avatar_url: string | null;
 }
 
 type Mode = "all_time" | "weekly" | "country" | "guild";
@@ -53,7 +55,7 @@ const Leaderboard = () => {
 
       let query = supabase
         .from("heroes")
-        .select("id, hero_name, username, gym_name, country, level, xp, weekly_xp, class");
+        .select("id, hero_name, username, gym_name, country, level, xp, weekly_xp, class, avatar_url");
 
       if (mode === "all_time") query = query.order("xp", { ascending: false });
       if (mode === "weekly") query = query.order("weekly_xp", { ascending: false });
@@ -117,6 +119,7 @@ const Leaderboard = () => {
               <div className={`w-10 shrink-0 text-center font-display text-2xl ${tierColor}`}>
                 {rank === 1 ? "♛" : rank}
               </div>
+              <HeroAvatar avatarUrl={r.avatar_url} name={r.hero_name} size={44} glow={rank <= 3} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-base uppercase tracking-wider text-foreground">
                   {r.hero_name}
