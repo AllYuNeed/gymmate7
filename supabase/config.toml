@@ -1,1 +1,13 @@
 project_id = "jmckfvnoxgrmzayashxg"
+
+[functions.vapid-key]
+verify_jwt = false
+
+[functions.season-reset]
+verify_jwt = false
+
+[functions.quest-reminders]
+verify_jwt = false
+
+[functions.send-push]
+verify_jwt = false

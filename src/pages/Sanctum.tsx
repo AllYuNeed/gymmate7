@@ -5,6 +5,8 @@ import { Sigil } from "@/components/Sigil";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { HERO_CLASSES, type ClassId } from "@/data/classes";
+import { pushSupported, subscribePush, unsubscribePush } from "@/lib/push";
+import { toast } from "sonner";
 
 interface Hero {
   hero_name: string;
@@ -23,6 +25,29 @@ const Sanctum = () => {
   const { user, loading: authLoading } = useAuth();
   const [hero, setHero] = useState<Hero | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pushOn, setPushOn] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+
+  useEffect(() => {
+    if (!pushSupported() || !user) return;
+    supabase.from("push_subscriptions").select("id").eq("user_id", user.id).limit(1)
+      .then(({ data }) => setPushOn((data ?? []).length > 0));
+  }, [user]);
+
+  const togglePush = async () => {
+    if (!user) return;
+    setPushBusy(true);
+    if (pushOn) {
+      await unsubscribePush();
+      setPushOn(false);
+      toast.success("Notifications disabled");
+    } else {
+      const r = await subscribePush(user.id);
+      if (r.ok) { setPushOn(true); toast.success("⚔ Notifications enabled"); }
+      else toast.error(r.error ?? "Failed to enable");
+    }
+    setPushBusy(false);
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -71,9 +96,16 @@ const Sanctum = () => {
               Lv {hero.level} · {heroClass.name}
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
-            Sign out
-          </Button>
+          <div className="flex flex-col gap-2">
+            {pushSupported() && (
+              <Button variant="rune" size="sm" onClick={togglePush} disabled={pushBusy}>
+                {pushOn ? "🔕 Mute" : "🔔 Notify"}
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              Sign out
+            </Button>
+          </div>
         </header>
 
         {/* Hero card */}

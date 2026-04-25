@@ -74,10 +74,10 @@ const Forge = () => {
         .single();
       if (logErr) throw logErr;
 
-      // Update hero XP and coins (and weekly XP for leaderboard)
+      // Update hero XP and coins (and weekly + monthly XP for leaderboard)
       const { data: hero } = await supabase
         .from("heroes")
-        .select("xp, level, coins, streak_days, weekly_xp, weekly_xp_reset_at")
+        .select("xp, level, coins, streak_days, weekly_xp, weekly_xp_reset_at, monthly_xp, monthly_xp_reset_at, last_workout_date")
         .eq("user_id", user.id)
         .single();
       if (hero) {
@@ -88,24 +88,70 @@ const Forge = () => {
         let consumed = 0;
         while (newXp - consumed >= xpForLvl(level + 1)) { consumed += xpForLvl(level + 1); level++; }
         const weekly = addWeeklyXp(hero.weekly_xp ?? 0, hero.weekly_xp_reset_at ?? new Date().toISOString(), totalXp);
+        // Monthly bucket
+        const now = new Date();
+        const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+        const lastMonthlyReset = hero.monthly_xp_reset_at ? new Date(hero.monthly_xp_reset_at) : monthStart;
+        const monthlyStale = lastMonthlyReset < monthStart;
+        const newMonthlyXp = (monthlyStale ? 0 : (hero.monthly_xp ?? 0)) + totalXp;
+        const newMonthlyResetAt = monthlyStale ? monthStart.toISOString() : lastMonthlyReset.toISOString();
+        const todayStr = now.toISOString().slice(0, 10);
         await supabase.from("heroes").update({
           xp: newXp,
           level,
           coins: newCoins,
           weekly_xp: weekly.weekly_xp,
           weekly_xp_reset_at: weekly.weekly_xp_reset_at,
+          monthly_xp: newMonthlyXp,
+          monthly_xp_reset_at: newMonthlyResetAt,
+          last_workout_date: todayStr,
         }).eq("user_id", user.id);
         if (level > (hero.level ?? 1)) toast.success(`✦ LEVEL UP! Lv ${level}`, { duration: 4000 });
 
-        // Add XP to all guilds the user belongs to
+        // Add XP to all guilds the user belongs to + damage guild bosses
         const { data: memberships } = await supabase
           .from("guild_members")
           .select("id, guild_id, contributed_xp")
           .eq("user_id", user.id);
+        const monthKey = todayStr.slice(0, 7);
         for (const m of memberships ?? []) {
           await supabase.from("guild_members").update({ contributed_xp: m.contributed_xp + totalXp }).eq("id", m.id);
           const { data: g } = await supabase.from("guilds").select("total_xp").eq("id", m.guild_id).maybeSingle();
           if (g) await supabase.from("guilds").update({ total_xp: g.total_xp + totalXp }).eq("id", m.guild_id);
+
+          // Damage guild boss if active this month
+          const { data: gb } = await supabase
+            .from("guild_bosses")
+            .select("id, current_hp, status")
+            .eq("guild_id", m.guild_id)
+            .eq("month_key", monthKey)
+            .eq("status", "active")
+            .maybeSingle();
+          if (gb) {
+            const dmg = Math.round(totalXp * 1.0);
+            const newHp = Math.max(0, gb.current_hp - dmg);
+            await supabase.from("guild_bosses").update({
+              current_hp: newHp,
+              status: newHp === 0 ? "defeated" : "active",
+              defeated_at: newHp === 0 ? new Date().toISOString() : null,
+            }).eq("id", gb.id);
+            // Track per-user damage contribution
+            const { data: existingDmg } = await supabase
+              .from("guild_boss_damage")
+              .select("id, damage")
+              .eq("guild_boss_id", gb.id)
+              .eq("user_id", user.id)
+              .maybeSingle();
+            if (existingDmg) {
+              await supabase.from("guild_boss_damage")
+                .update({ damage: existingDmg.damage + dmg, updated_at: new Date().toISOString() })
+                .eq("id", existingDmg.id);
+            } else {
+              await supabase.from("guild_boss_damage")
+                .insert({ guild_boss_id: gb.id, user_id: user.id, damage: dmg });
+            }
+            if (newHp === 0) toast.success("⚔ GUILD BOSS DEFEATED! ⚔", { duration: 5000 });
+          }
         }
       }
 

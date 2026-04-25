@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { GuildBossPanel } from "@/components/GuildBossPanel";
 
 interface Guild {
   id: string;
@@ -123,11 +124,25 @@ const GuildDetail = () => {
     if (!user || !id || !draft.trim()) return;
     setSending(true);
     try {
+      const text = draft.trim().slice(0, 500);
       const { error } = await supabase.from("guild_messages").insert({
-        guild_id: id, user_id: user.id, message: draft.trim().slice(0, 500),
+        guild_id: id, user_id: user.id, message: text,
       });
       if (error) throw error;
       setDraft("");
+      // Notify other guild members via push
+      const recipients = members.filter((m) => m.user_id !== user.id).map((m) => m.user_id);
+      if (recipients.length > 0) {
+        const senderName = members.find((m) => m.user_id === user.id)?.hero_name ?? "A guildmate";
+        void supabase.functions.invoke("send-push", {
+          body: {
+            user_ids: recipients,
+            title: `${guild?.icon ?? "✉"} ${guild?.name ?? "Guild"}`,
+            body: `${senderName}: ${text.slice(0, 80)}`,
+            url: `/guilds/${id}`,
+          },
+        });
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to send");
     } finally {
@@ -175,6 +190,13 @@ const GuildDetail = () => {
           <Button variant="ghost" size="sm" onClick={leave} className="mt-4">Leave Guild</Button>
         )}
       </header>
+
+      <GuildBossPanel
+        guildId={guild.id}
+        isLeader={guild.leader_user_id === user?.id}
+        isMember={isMember}
+        memberCount={members.length}
+      />
 
       <div className="mt-8 grid gap-6 md:grid-cols-[1fr_1.4fr]">
         {/* Members */}
