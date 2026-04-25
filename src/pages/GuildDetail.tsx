@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { GuildBossPanel } from "@/components/GuildBossPanel";
+import { HeroAvatar } from "@/components/HeroAvatar";
 
 interface Guild {
   id: string;
@@ -27,6 +28,7 @@ interface Member {
   hero_name?: string;
   username?: string | null;
   level?: number;
+  avatar_url?: string | null;
 }
 
 interface Message {
@@ -71,19 +73,20 @@ const GuildDetail = () => {
       .order("contributed_xp", { ascending: false });
 
     const userIds = (membs ?? []).map((m) => m.user_id);
-    let heroByUser = new Map<string, { hero_name: string; username: string | null; level: number }>();
+    let heroByUser = new Map<string, { hero_name: string; username: string | null; level: number; avatar_url: string | null }>();
     if (userIds.length > 0) {
       const { data: heroes } = await supabase
         .from("heroes")
-        .select("user_id, hero_name, username, level")
+        .select("user_id, hero_name, username, level, avatar_url")
         .in("user_id", userIds);
-      heroByUser = new Map((heroes ?? []).map((h) => [h.user_id, { hero_name: h.hero_name, username: h.username, level: h.level }]));
+      heroByUser = new Map((heroes ?? []).map((h) => [h.user_id, { hero_name: h.hero_name, username: h.username, level: h.level, avatar_url: h.avatar_url }]));
     }
     const enriched = (membs ?? []).map((m) => ({
       ...m,
       hero_name: heroByUser.get(m.user_id)?.hero_name,
       username: heroByUser.get(m.user_id)?.username ?? null,
       level: heroByUser.get(m.user_id)?.level,
+      avatar_url: heroByUser.get(m.user_id)?.avatar_url ?? null,
     }));
     setMembers(enriched);
     setIsMember(enriched.some((m) => m.user_id === user.id));
@@ -206,6 +209,7 @@ const GuildDetail = () => {
             {members.map((m, i) => (
               <div key={m.id} className="flex items-center gap-3 p-3">
                 <div className="w-6 text-center font-display text-sm text-muted-foreground">{i + 1}</div>
+                <HeroAvatar avatarUrl={m.avatar_url} name={m.hero_name ?? "?"} size={36} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-sm uppercase tracking-wider text-foreground">
                     {m.hero_name ?? "Unknown"}
