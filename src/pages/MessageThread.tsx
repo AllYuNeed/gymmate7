@@ -156,7 +156,7 @@ const MessageThread = () => {
       setDraft("");
       clearTyping(id, user.id);
       triggerPush(text);
-    } catch (err) {
+    } catch {
       toast.error("Failed to send");
     } finally {
       setSending(false);

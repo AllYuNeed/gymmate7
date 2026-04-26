@@ -121,7 +121,7 @@ const Friends = () => {
     try {
       const convId = await getOrCreateConversation(user.id, otherId);
       navigate(`/messages/${convId}`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to open chat");
     }
   };
