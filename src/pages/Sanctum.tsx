@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sigil } from "@/components/Sigil";
 import { HeroAvatar } from "@/components/HeroAvatar";
 import { AvatarPicker } from "@/components/AvatarPicker";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 
 interface Hero {
   hero_name: string;
+  username: string | null;
   class: ClassId;
   level: number;
   xp: number;
@@ -31,6 +33,9 @@ const Sanctum = () => {
   const [pushOn, setPushOn] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
 
   useEffect(() => {
     if (!pushSupported() || !user) return;
@@ -61,7 +66,7 @@ const Sanctum = () => {
     }
     supabase
       .from("heroes")
-      .select("hero_name, class, level, xp, coins, streak_days, streak_freezes, avatar_url")
+      .select("hero_name, username, class, level, xp, coins, streak_days, streak_freezes, avatar_url")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -73,6 +78,25 @@ const Sanctum = () => {
         setLoading(false);
       });
   }, [user, authLoading, navigate]);
+
+  const saveUsername = async () => {
+    if (!user) return;
+    const next = usernameDraft.trim().toLowerCase();
+    if (next.length < 3 || !/^[a-zA-Z0-9_]+$/.test(next)) {
+      toast.error("3+ chars, letters/numbers/underscore only");
+      return;
+    }
+    setSavingUsername(true);
+    const { error } = await supabase.from("heroes").update({ username: next }).eq("user_id", user.id);
+    setSavingUsername(false);
+    if (error) {
+      toast.error(error.message.includes("duplicate") ? "Username taken" : "Failed to save");
+      return;
+    }
+    setHero((h) => (h ? { ...h, username: next } : h));
+    setEditingUsername(false);
+    toast.success("Username updated");
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -96,6 +120,38 @@ const Sanctum = () => {
           <div>
             <p className="font-display text-xs uppercase tracking-[0.4em] text-primary/70">◆ The Sanctum ◆</p>
             <h1 className="mt-2 font-display text-3xl font-bold text-gold sm:text-4xl">{hero.hero_name}</h1>
+            {editingUsername ? (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="font-display text-sm text-muted-foreground">@</span>
+                <Input
+                  autoFocus
+                  value={usernameDraft}
+                  onChange={(e) => setUsernameDraft(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+                  maxLength={20}
+                  className="h-8 w-40 font-display text-sm"
+                  placeholder="username"
+                />
+                <Button size="sm" variant="rune" onClick={saveUsername} disabled={savingUsername}>
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditingUsername(false)} disabled={savingUsername}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setUsernameDraft(hero.username ?? "");
+                  setEditingUsername(true);
+                }}
+                className="mt-1 inline-flex items-center gap-1.5 font-display text-sm text-secondary transition hover:text-primary"
+                aria-label="Edit username"
+              >
+                {hero.username ? `@${hero.username}` : "+ set username"}
+                <span className="text-xs opacity-60">✎</span>
+              </button>
+            )}
             <p className="mt-1 font-display text-sm uppercase tracking-widest text-muted-foreground">
               Lv {hero.level} · {heroClass.name}
             </p>
