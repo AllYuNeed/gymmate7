@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sigil } from "@/components/Sigil";
 import { HeroAvatar } from "@/components/HeroAvatar";
 import { AvatarPicker } from "@/components/AvatarPicker";
