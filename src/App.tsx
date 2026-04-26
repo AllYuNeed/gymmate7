@@ -6,6 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/AppShell";
 import Landing from "./pages/Landing.tsx";
 import Auth from "./pages/Auth.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
+import Friends from "./pages/Friends.tsx";
+import Messages from "./pages/Messages.tsx";
+import MessageThread from "./pages/MessageThread.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import Sanctum from "./pages/Sanctum.tsx";
 import Forge from "./pages/Forge.tsx";
@@ -32,6 +37,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/friends" element={<Friends />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:id" element={<MessageThread />} />
             <Route path="/awaken" element={<Onboarding />} />
             <Route path="/sanctum" element={<Sanctum />} />
             <Route path="/forge" element={<Forge />} />

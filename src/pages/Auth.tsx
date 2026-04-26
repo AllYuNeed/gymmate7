@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Sigil } from "@/components/Sigil";
 import { toast } from "sonner";
 
@@ -96,7 +97,46 @@ const Auth = () => {
             {loading ? "Channeling..." : mode === "signup" ? "Seal the Covenant" : "Enter the Realm"}
           </Button>
 
+          {mode === "signin" && (
+            <div className="text-right">
+              <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+                Forgotten thy incantation?
+              </Link>
+            </div>
+          )}
+
           <div className="rune-divider" />
+
+          <Button
+            type="button"
+            variant="rune"
+            size="lg"
+            className="w-full"
+            onClick={async () => {
+              setLoading(true);
+              try {
+                const result = await lovable.auth.signInWithOAuth("google", {
+                  redirect_uri: `${window.location.origin}/sanctum`,
+                });
+                if (result.error) throw result.error;
+                if (!result.redirected) {
+                  // Tokens received inline — check hero
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const { data: hero } = await supabase
+                      .from("heroes").select("id").eq("user_id", user.id).maybeSingle();
+                    navigate(hero ? "/sanctum" : "/awaken");
+                  }
+                }
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+              } finally {
+                setLoading(false);
+              }
+            }}
+          >
+            <span className="text-base">◉</span> Continue with Google
+          </Button>
 
           <button
             type="button"

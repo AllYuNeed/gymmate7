@@ -11,11 +11,13 @@ const TABS = [
   { to: "/routines", label: "Plans", glyph: "✠" },
   { to: "/leaderboard", label: "Ranks", glyph: "♛" },
   { to: "/guilds", label: "Guilds", glyph: "♆" },
+  { to: "/messages", label: "Chat", glyph: "✉" },
+  { to: "/friends", label: "Pacts", glyph: "♡" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const hideNav = ["/", "/auth", "/awaken"].includes(location.pathname);
+  const hideNav = ["/", "/auth", "/awaken", "/forgot-password", "/reset-password"].includes(location.pathname);
 
   return (
     <div className="relative min-h-screen pb-24">
