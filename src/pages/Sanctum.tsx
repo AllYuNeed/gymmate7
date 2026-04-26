@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 interface Hero {
   hero_name: string;
+  username: string | null;
   class: ClassId;
   level: number;
   xp: number;
