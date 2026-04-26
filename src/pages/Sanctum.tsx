@@ -120,6 +120,38 @@ const Sanctum = () => {
           <div>
             <p className="font-display text-xs uppercase tracking-[0.4em] text-primary/70">◆ The Sanctum ◆</p>
             <h1 className="mt-2 font-display text-3xl font-bold text-gold sm:text-4xl">{hero.hero_name}</h1>
+            {editingUsername ? (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="font-display text-sm text-muted-foreground">@</span>
+                <Input
+                  autoFocus
+                  value={usernameDraft}
+                  onChange={(e) => setUsernameDraft(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+                  maxLength={20}
+                  className="h-8 w-40 font-display text-sm"
+                  placeholder="username"
+                />
+                <Button size="sm" variant="rune" onClick={saveUsername} disabled={savingUsername}>
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditingUsername(false)} disabled={savingUsername}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setUsernameDraft(hero.username ?? "");
+                  setEditingUsername(true);
+                }}
+                className="mt-1 inline-flex items-center gap-1.5 font-display text-sm text-secondary transition hover:text-primary"
+                aria-label="Edit username"
+              >
+                {hero.username ? `@${hero.username}` : "+ set username"}
+                <span className="text-xs opacity-60">✎</span>
+              </button>
+            )}
             <p className="mt-1 font-display text-sm uppercase tracking-widest text-muted-foreground">
               Lv {hero.level} · {heroClass.name}
             </p>
