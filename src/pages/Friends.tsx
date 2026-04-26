@@ -156,7 +156,7 @@ const Friends = () => {
           <div className="space-y-2">
             {results.map((h) => (
               <div key={h.user_id} className="panel flex items-center gap-3 p-3">
-                <HeroAvatar avatarUrl={h.avatar_url} heroName={h.hero_name} size={44} />
+                <HeroAvatar avatarUrl={h.avatar_url} name={h.hero_name} size={44} />
                 <div className="flex-1 min-w-0">
                   <p className="truncate font-display text-foreground">{h.hero_name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -185,7 +185,7 @@ const Friends = () => {
           <div className="space-y-2">
             {incoming.map((f) => (
               <div key={f.id} className="panel flex items-center gap-3 p-3">
-                <HeroAvatar avatarUrl={f.hero?.avatar_url ?? null} heroName={f.hero?.hero_name ?? "?"} size={44} />
+                <HeroAvatar avatarUrl={f.hero?.avatar_url ?? null} name={f.hero?.hero_name ?? "?"} size={44} />
                 <div className="flex-1 min-w-0">
                   <p className="truncate font-display text-foreground">{f.hero?.hero_name}</p>
                   <p className="text-xs text-muted-foreground">Lv {f.hero?.level} {f.hero?.class}</p>
@@ -215,7 +215,7 @@ const Friends = () => {
           <div className="space-y-2">
             {friends.map((f) => (
               <div key={f.id} className="panel flex items-center gap-3 p-3">
-                <HeroAvatar avatarUrl={f.hero?.avatar_url ?? null} heroName={f.hero?.hero_name ?? "?"} size={44} />
+                <HeroAvatar avatarUrl={f.hero?.avatar_url ?? null} name={f.hero?.hero_name ?? "?"} size={44} />
                 <div className="flex-1 min-w-0">
                   <p className="truncate font-display text-foreground">{f.hero?.hero_name}</p>
                   <p className="text-xs text-muted-foreground">Lv {f.hero?.level} {f.hero?.class}</p>
@@ -241,7 +241,7 @@ const Friends = () => {
           <div className="space-y-2">
             {outgoing.map((f) => (
               <div key={f.id} className="panel flex items-center gap-3 p-3 opacity-70">
-                <HeroAvatar avatarUrl={f.hero?.avatar_url ?? null} heroName={f.hero?.hero_name ?? "?"} size={44} />
+                <HeroAvatar avatarUrl={f.hero?.avatar_url ?? null} name={f.hero?.hero_name ?? "?"} size={44} />
                 <div className="flex-1 min-w-0">
                   <p className="truncate font-display text-foreground">{f.hero?.hero_name}</p>
                   <p className="text-xs text-muted-foreground">Pending...</p>

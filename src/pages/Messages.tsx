@@ -130,7 +130,7 @@ const Messages = () => {
               to={`/messages/${c.id}`}
               className="panel flex items-center gap-3 p-3 transition-colors hover:border-primary/40"
             >
-              <HeroAvatar avatarUrl={c.other?.avatar_url ?? null} heroName={c.other?.hero_name ?? "?"} size={48} />
+              <HeroAvatar avatarUrl={c.other?.avatar_url ?? null} name={c.other?.hero_name ?? "?"} size={48} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate font-display text-foreground">{c.other?.hero_name ?? "Unknown"}</p>

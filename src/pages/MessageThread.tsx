@@ -213,7 +213,7 @@ const MessageThread = () => {
         </Link>
         {other && (
           <>
-            <HeroAvatar avatarUrl={other.avatar_url} heroName={other.hero_name} size={40} />
+            <HeroAvatar avatarUrl={other.avatar_url} name={other.hero_name} size={40} />
             <div className="flex-1 min-w-0">
               <p className="truncate font-display text-foreground">{other.hero_name}</p>
               <p className="text-xs text-muted-foreground">Lv {other.level} {other.class}</p>
