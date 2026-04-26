@@ -65,7 +65,7 @@ const Sanctum = () => {
     }
     supabase
       .from("heroes")
-      .select("hero_name, class, level, xp, coins, streak_days, streak_freezes, avatar_url")
+      .select("hero_name, username, class, level, xp, coins, streak_days, streak_freezes, avatar_url")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -77,6 +77,25 @@ const Sanctum = () => {
         setLoading(false);
       });
   }, [user, authLoading, navigate]);
+
+  const saveUsername = async () => {
+    if (!user) return;
+    const next = usernameDraft.trim().toLowerCase();
+    if (next.length < 3 || !/^[a-zA-Z0-9_]+$/.test(next)) {
+      toast.error("3+ chars, letters/numbers/underscore only");
+      return;
+    }
+    setSavingUsername(true);
+    const { error } = await supabase.from("heroes").update({ username: next }).eq("user_id", user.id);
+    setSavingUsername(false);
+    if (error) {
+      toast.error(error.message.includes("duplicate") ? "Username taken" : "Failed to save");
+      return;
+    }
+    setHero((h) => (h ? { ...h, username: next } : h));
+    setEditingUsername(false);
+    toast.success("Username updated");
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
