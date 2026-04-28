@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sigil } from "@/components/Sigil";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/hooks/useAuth";
 

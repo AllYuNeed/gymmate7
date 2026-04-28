@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { Sigil } from "@/components/Sigil";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
 
