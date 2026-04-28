@@ -15,7 +15,7 @@ const ROWS: Row[] = [
   { type: "Profile photo", collected: "Optional", shared: "Yes (in-app)", optional: "Yes", purpose: "Hero avatar" },
   { type: "Fitness info (workouts, XP)", collected: "Yes", shared: "Yes (stats only, in-app)", optional: "No", purpose: "Core gameplay & leaderboards" },
   { type: "Messages & shared images", collected: "Yes", shared: "Only with chat participants", optional: "Yes", purpose: "Direct messages and guild chat" },
-  { type: "Push token", collected: "Optional", shared: "No", optional2: "Yes", optional_text: "Yes", purpose: "Send notifications you enable" } as unknown as Row,
+  { type: "Push token", collected: "Optional", shared: "No", optional: "Yes", purpose: "Send notifications you enable" },
 ];
 
 const DataSafety = () => (
