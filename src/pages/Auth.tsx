@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Sigil } from "@/components/Sigil";
+import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
 
 const Auth = () => {
@@ -50,9 +51,9 @@ const Auth = () => {
       <div className="starfield" />
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mb-6 flex justify-center">
-            <Sigil glyph="✠" size={120} />
-          </div>
+          <Link to="/" aria-label="Mortal Gyms home" className="mb-6 inline-block">
+            <Logo size={140} />
+          </Link>
           <p className="font-display text-xs uppercase tracking-[0.4em] text-primary/80">◆ Sacred Covenant ◆</p>
           <h1 className="mt-3 font-display text-4xl font-bold text-gold">
             {mode === "signup" ? "Forge a Pact" : "Return, Hero"}
