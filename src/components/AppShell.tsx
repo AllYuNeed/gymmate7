@@ -17,14 +17,30 @@ const TABS = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const hideNav = ["/", "/auth", "/awaken", "/forgot-password", "/reset-password"].includes(location.pathname);
+  const hideNav = ["/", "/auth", "/awaken", "/forgot-password", "/reset-password", "/privacy", "/terms", "/data-safety"].includes(location.pathname);
 
   return (
     <div className="relative min-h-screen pb-24">
       <div className="starfield pointer-events-none fixed inset-0" />
       <div className="relative">{children}</div>
       {!hideNav && <BottomNav />}
+      <SiteFooter />
     </div>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="relative z-10 mt-16 border-t border-border/40 bg-surface-deep/40 px-6 py-6 text-center text-xs text-muted-foreground">
+      <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-4 gap-y-2">
+        <span className="font-display uppercase tracking-widest text-primary/70">◆ Mortal Gyms ◆</span>
+        <a href="/privacy" className="hover:text-primary">Privacy</a>
+        <span aria-hidden>·</span>
+        <a href="/terms" className="hover:text-primary">Terms</a>
+        <span aria-hidden>·</span>
+        <a href="/data-safety" className="hover:text-primary">Data Safety</a>
+      </div>
+    </footer>
   );
 }
 

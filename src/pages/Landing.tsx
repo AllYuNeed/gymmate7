@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sigil } from "@/components/Sigil";
+import { Logo } from "@/components/Logo";
 import { useAuth } from "@/hooks/useAuth";
 
 const Landing = () => {
@@ -12,8 +12,8 @@ const Landing = () => {
 
       {/* Hero */}
       <section className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-20 text-center">
-        <div className="mb-12 animate-[float_5s_ease-in-out_infinite]">
-          <Sigil glyph="✠" size={220} />
+        <div className="mb-10 animate-[float_5s_ease-in-out_infinite]">
+          <Logo size={240} />
         </div>
 
         <p className="mb-4 font-display text-xs uppercase tracking-[0.4em] text-primary/80">
