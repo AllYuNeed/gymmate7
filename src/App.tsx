@@ -24,6 +24,9 @@ import Guilds from "./pages/Guilds.tsx";
 import GuildDetail from "./pages/GuildDetail.tsx";
 import PlanBuilder from "./pages/PlanBuilder.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import Privacy from "./pages/Privacy.tsx";
+import Terms from "./pages/Terms.tsx";
+import DataSafety from "./pages/DataSafety.tsx";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +57,9 @@ const App = () => (
             <Route path="/guilds" element={<Guilds />} />
             <Route path="/guilds/:id" element={<GuildDetail />} />
             <Route path="/plan-builder" element={<PlanBuilder />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/data-safety" element={<DataSafety />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppShell>
