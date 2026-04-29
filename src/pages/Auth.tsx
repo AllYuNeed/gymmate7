@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
 
@@ -115,19 +114,13 @@ const Auth = () => {
             onClick={async () => {
               setLoading(true);
               try {
-                const result = await lovable.auth.signInWithOAuth("google", {
-                  redirect_uri: `${window.location.origin}/sanctum`,
-                });
-                if (result.error) throw result.error;
-                if (!result.redirected) {
-                  // Tokens received inline — check hero
-                  const { data: { user } } = await supabase.auth.getUser();
-                  if (user) {
-                    const { data: hero } = await supabase
-                      .from("heroes").select("id").eq("user_id", user.id).maybeSingle();
-                    navigate(hero ? "/sanctum" : "/awaken");
-                  }
-                }
+               const { error } = await supabase.auth.signInWithOAuth({
+  provider: "google",
+  options: {
+    redirectTo: `https://mortalgyms.com/auth/callback`,
+  },
+});
+if (error) throw error;
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : "Google sign-in failed");
               } finally {
