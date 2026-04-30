@@ -98,6 +98,18 @@ const Onboarding = () => {
     if (!user) return;
     setSaving(true);
     try {
+      // If a hero already exists for this user, skip insert and head to sanctum.
+      const { data: existing } = await supabase
+        .from("heroes")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (existing) {
+        toast.success("Welcome back, hero.");
+        navigate("/sanctum");
+        return;
+      }
+
       const injuriesArr = (answers.injuries as string[]) ?? [];
       const cleanInjuries = injuriesArr.includes("none") ? [] : injuriesArr;
 
