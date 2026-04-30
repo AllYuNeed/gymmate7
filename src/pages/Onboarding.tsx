@@ -137,9 +137,9 @@ const Onboarding = () => {
       });
       if (error) throw error;
 
-      // Seed muscle realms
+      // Seed muscle realms (ignore if already seeded)
       const realmRows = MUSCLES.map((m) => ({ user_id: user.id, muscle: m.id, xp: 0, rank: 1 }));
-      await supabase.from("muscle_realms").insert(realmRows);
+      await supabase.from("muscle_realms").upsert(realmRows, { onConflict: "user_id,muscle", ignoreDuplicates: true });
 
       toast.success(`${heroName} has awakened!`);
       navigate("/sanctum");
