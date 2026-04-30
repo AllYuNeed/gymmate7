@@ -200,7 +200,7 @@ const Onboarding = () => {
     }
   };
 
-  if (authLoading) return null;
+  if (authLoading || checkingHero) return null;
 
   // Imperial conversions
   const cmToFtIn = (cm: number) => {
