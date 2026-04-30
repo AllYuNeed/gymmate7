@@ -32,17 +32,29 @@ const Onboarding = () => {
   const [heroName, setHeroName] = useState("");
   const [revealing, setRevealing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [checkingHero, setCheckingHero] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) navigate("/auth");
+    if (authLoading) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    // Check for an existing hero BEFORE rendering the quiz.
+    // Returning users (e.g. Google sign-in again) skip onboarding entirely.
+    supabase
+      .from("heroes")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          navigate("/sanctum", { replace: true });
+        } else {
+          setCheckingHero(false);
+        }
+      });
   }, [authLoading, user, navigate]);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("heroes").select("id").eq("user_id", user.id).maybeSingle().then(({ data }) => {
-      if (data) navigate("/sanctum");
-    });
-  }, [user, navigate]);
 
   const PROFILE_STEP = QUIZ.length;
   const NAME_STEP = QUIZ.length + 1;
@@ -95,15 +107,20 @@ const Onboarding = () => {
   };
 
   const saveHero = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.error("Session expired. Please sign in again.");
+      navigate("/auth");
+      return;
+    }
     setSaving(true);
     try {
       // If a hero already exists for this user, skip insert and head to sanctum.
-      const { data: existing } = await supabase
+      const { data: existing, error: existingErr } = await supabase
         .from("heroes")
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle();
+      if (existingErr) throw existingErr;
       if (existing) {
         toast.success("Welcome back, hero.");
         navigate("/sanctum");
@@ -112,6 +129,20 @@ const Onboarding = () => {
 
       const injuriesArr = (answers.injuries as string[]) ?? [];
       const cleanInjuries = injuriesArr.includes("none") ? [] : injuriesArr;
+
+      const username = profile.username.trim().toLowerCase();
+
+      // Pre-check username availability for a clearer error message
+      const { data: takenRow } = await supabase
+        .from("heroes")
+        .select("id")
+        .eq("username", username)
+        .maybeSingle();
+      if (takenRow) {
+        toast.error(`Username "@${username}" is already taken. Please go back and choose another.`);
+        setRevealing(false);
+        return;
+      }
 
       const { error } = await supabase.from("heroes").insert({
         user_id: user.id,
@@ -130,20 +161,37 @@ const Onboarding = () => {
         height_cm: profile.height_cm,
         weight_kg: profile.weight_kg,
         units: profile.units,
-        username: profile.username.trim().toLowerCase(),
+        username,
         gym_name: profile.gym_name.trim() || null,
         country: profile.country.trim() || null,
         city: profile.city.trim() || null,
       });
-      if (error) throw error;
+      if (error) {
+        // Duplicate user_id (hero already exists) → just send them in
+        if (error.code === "23505" && error.message?.toLowerCase().includes("user_id")) {
+          navigate("/sanctum");
+          return;
+        }
+        if (error.code === "23505" && error.message?.toLowerCase().includes("username")) {
+          toast.error(`Username "@${username}" is already taken.`);
+          setRevealing(false);
+          return;
+        }
+        throw error;
+      }
 
       // Seed muscle realms (ignore if already seeded)
       const realmRows = MUSCLES.map((m) => ({ user_id: user.id, muscle: m.id, xp: 0, rank: 1 }));
-      await supabase.from("muscle_realms").upsert(realmRows, { onConflict: "user_id,muscle", ignoreDuplicates: true });
+      const { error: realmErr } = await supabase
+        .from("muscle_realms")
+        .upsert(realmRows, { onConflict: "user_id,muscle", ignoreDuplicates: true });
+      // Don't block awakening if realm seeding has a hiccup — log and continue.
+      if (realmErr) console.warn("muscle_realms seed warning:", realmErr);
 
       toast.success(`${heroName} has awakened!`);
       navigate("/sanctum");
     } catch (err) {
+      console.error("saveHero error:", err);
       const msg = err instanceof Error ? err.message : "Failed to awaken hero";
       toast.error(msg);
       setRevealing(false);
@@ -152,7 +200,7 @@ const Onboarding = () => {
     }
   };
 
-  if (authLoading) return null;
+  if (authLoading || checkingHero) return null;
 
   // Imperial conversions
   const cmToFtIn = (cm: number) => {
