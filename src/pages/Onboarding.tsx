@@ -32,17 +32,29 @@ const Onboarding = () => {
   const [heroName, setHeroName] = useState("");
   const [revealing, setRevealing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [checkingHero, setCheckingHero] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) navigate("/auth");
+    if (authLoading) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    // Check for an existing hero BEFORE rendering the quiz.
+    // Returning users (e.g. Google sign-in again) skip onboarding entirely.
+    supabase
+      .from("heroes")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          navigate("/sanctum", { replace: true });
+        } else {
+          setCheckingHero(false);
+        }
+      });
   }, [authLoading, user, navigate]);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("heroes").select("id").eq("user_id", user.id).maybeSingle().then(({ data }) => {
-      if (data) navigate("/sanctum");
-    });
-  }, [user, navigate]);
 
   const PROFILE_STEP = QUIZ.length;
   const NAME_STEP = QUIZ.length + 1;
