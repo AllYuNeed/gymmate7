@@ -35,13 +35,44 @@ const Quests = () => {
 
   const ensureToday = async (uid: string) => {
     const today = todayKey();
-    const { data: existing } = await supabase
-      .from("daily_quests").select("*").eq("user_id", uid).eq("quest_date", today);
-    if (existing && existing.length > 0) return existing as Quest[];
-    // generate 3 random quests
+
+    const { data: existing, error: fetchErr } = await supabase
+      .from("daily_quests")
+      .select("*")
+      .eq("user_id", uid)
+      .eq("quest_date", today);
+
+    // ✅ FIX: Surface fetch errors instead of silently showing "All trials claimed"
+    if (fetchErr) {
+      toast.error("Could not load quests: " + fetchErr.message);
+      return [];
+    }
+
+    // ✅ FIX: Filter out already-claimed quests (completed = true) so they don't reappear
+    const active = (existing ?? []).filter((q) => !q.completed) as Quest[];
+    if ((existing ?? []).length > 0) return active;
+
+    // Generate 3 random quests for today
     const shuffled = [...QUEST_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
-    const rows = shuffled.map((q) => ({ ...q, user_id: uid, quest_date: today, progress: 0, completed: false }));
-    const { data: inserted } = await supabase.from("daily_quests").insert(rows).select();
+    const rows = shuffled.map((q) => ({
+      ...q,
+      user_id: uid,
+      quest_date: today,
+      progress: 0,
+      completed: false,
+    }));
+
+    const { data: inserted, error: insertErr } = await supabase
+      .from("daily_quests")
+      .insert(rows)
+      .select();
+
+    // ✅ FIX: Surface insert errors
+    if (insertErr) {
+      toast.error("Could not create quests: " + insertErr.message);
+      return [];
+    }
+
     return (inserted ?? []) as Quest[];
   };
 
@@ -57,23 +88,40 @@ const Quests = () => {
 
   const claim = async (q: Quest) => {
     if (!user || !q.completed) return;
-    // mark claimed by deletion-from-list (we record a `claimed` via type swap or just remove from screen)
-    // We'll set progress to 9999 to mark claimed, then award XP+coins
-    const { data: hero } = await supabase.from("heroes").select("xp, level, coins").eq("user_id", user.id).single();
-    if (hero) {
-      const newXp = (hero.xp ?? 0) + q.xp_reward;
-      const xpForLvl = (l: number) => Math.floor(100 * Math.pow(l, 1.5));
-      let level = hero.level ?? 1; let consumed = 0;
-      while (newXp - consumed >= xpForLvl(level + 1)) { consumed += xpForLvl(level + 1); level++; }
-      await supabase.from("heroes").update({
-        xp: newXp,
-        level,
-        coins: (hero.coins ?? 0) + q.coin_reward,
-      }).eq("user_id", user.id);
+
+    try {
+      const { data: hero } = await supabase
+        .from("heroes").select("xp, level, coins").eq("user_id", user.id).single();
+
+      if (hero) {
+        const newXp = (hero.xp ?? 0) + q.xp_reward;
+        const xpForLvl = (l: number) => Math.floor(100 * Math.pow(l, 1.5));
+        let level = hero.level ?? 1;
+        let consumed = 0;
+        while (newXp - consumed >= xpForLvl(level + 1)) {
+          consumed += xpForLvl(level + 1);
+          level++;
+        }
+        await supabase.from("heroes").update({
+          xp: newXp,
+          level,
+          coins: (hero.coins ?? 0) + q.coin_reward,
+        }).eq("user_id", user.id);
+      }
+
+      // ✅ FIX: Set completed: true in DB so it doesn't reappear on refresh
+      const { error: updateErr } = await supabase
+        .from("daily_quests")
+        .update({ completed: true, progress: q.target })
+        .eq("id", q.id);
+
+      if (updateErr) throw updateErr;
+
+      setQuests((qs) => qs.filter((x) => x.id !== q.id));
+      toast.success(`Quest claimed! +${q.xp_reward} XP, +${q.coin_reward} coins`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to claim quest");
     }
-    await supabase.from("daily_quests").update({ progress: 99999 }).eq("id", q.id);
-    setQuests((qs) => qs.filter((x) => x.id !== q.id));
-    toast.success(`Quest claimed! +${q.xp_reward} XP, +${q.coin_reward} coins`);
   };
 
   if (loading) return null;
@@ -88,7 +136,9 @@ const Quests = () => {
 
       <section className="mt-8 space-y-3">
         {quests.length === 0 && (
-          <div className="panel p-8 text-center text-muted-foreground">All trials claimed. Return tomorrow.</div>
+          <div className="panel p-8 text-center text-muted-foreground">
+            All trials claimed. Return tomorrow.
+          </div>
         )}
         {quests.map((q) => {
           const pct = Math.min(100, (q.progress / q.target) * 100);
@@ -108,7 +158,9 @@ const Quests = () => {
                 <div className="h-full rounded-full bg-gradient-xp transition-all duration-700" style={{ width: `${pct}%` }} />
               </div>
               <div className="mt-2 flex items-center justify-between">
-                <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">{Math.min(q.progress, q.target)} / {q.target}</span>
+                <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">
+                  {Math.min(q.progress, q.target)} / {q.target}
+                </span>
                 {q.completed ? (
                   <Button variant="hero" size="sm" onClick={() => claim(q)}>Claim Reward ✦</Button>
                 ) : (
