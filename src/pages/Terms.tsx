@@ -52,7 +52,7 @@ const Terms = () => (
 
         <h2 className="font-display text-2xl text-primary">8. Contact</h2>
         <p>
-          Questions: <a className="text-primary underline" href="mailto:support@mortalgyms.app">support@mortalgyms.app</a>
+          Questions: <a className="text-primary underline" href="mailto:mortalgyms@gmail.com">mortalgyms@gmail.com</a>
         </p>
       </section>
 
