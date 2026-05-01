@@ -56,13 +56,17 @@ const Routines = () => {
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  // ✅ FIX: Track which preset button is loading to prevent double-clicks
+  const [presetLoading, setPresetLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/auth"); return; }
     (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("workout_routines").select("*").eq("user_id", user.id).eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      // ✅ FIX: Surface DB errors on initial load
+      if (error) toast.error("Could not load routine: " + error.message);
       if (data) setRoutine(data as unknown as Routine);
       setLoading(false);
     })();
@@ -86,21 +90,43 @@ const Routines = () => {
     }
   };
 
+  // ✅ FIX: Added try/catch and loading state so errors are visible and buttons don't silently fail
   const usePreset = async (key: keyof typeof PRESETS) => {
     if (!user) return;
-    const r = PRESETS[key]();
-    // mark previous inactive
-    await supabase.from("workout_routines").update({ is_active: false }).eq("user_id", user.id).eq("is_active", true);
-    const { data } = await supabase.from("workout_routines").insert([{
-      user_id: user.id,
-      title: r.title,
-      summary: r.summary,
-      source: "preset",
-      days_per_week: r.days_per_week,
-      schedule: r.schedule as unknown as never,
-    }]).select().single();
-    if (data) setRoutine(data as unknown as Routine);
-    toast.success("Preset routine activated!");
+    setPresetLoading(key);
+    try {
+      const r = PRESETS[key]();
+
+      // Mark previous routine inactive
+      const { error: updateErr } = await supabase
+        .from("workout_routines")
+        .update({ is_active: false })
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+      if (updateErr) throw updateErr;
+
+      // Insert new preset routine
+      const { data, error: insertErr } = await supabase
+        .from("workout_routines")
+        .insert([{
+          user_id: user.id,
+          title: r.title,
+          summary: r.summary,
+          source: "preset",
+          days_per_week: r.days_per_week,
+          schedule: r.schedule as unknown as never,
+        }])
+        .select()
+        .single();
+      if (insertErr) throw insertErr;
+
+      if (data) setRoutine(data as unknown as Routine);
+      toast.success("Preset routine activated!");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to activate preset");
+    } finally {
+      setPresetLoading(null);
+    }
   };
 
   if (loading) return null;
@@ -118,13 +144,19 @@ const Routines = () => {
       <section className="mt-8 panel p-6">
         <p className="font-display text-xs uppercase tracking-widest text-secondary">Forge a New Routine</p>
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <Button variant="hero" onClick={generateAi} disabled={generating}>
+          <Button variant="hero" onClick={generateAi} disabled={generating || presetLoading !== null}>
             {generating ? "Summoning..." : "✦ AI Personalized"}
           </Button>
           <div className="grid grid-cols-3 gap-2">
-            <Button variant="rune" size="sm" onClick={() => usePreset("ppl")}>PPL 6d</Button>
-            <Button variant="rune" size="sm" onClick={() => usePreset("upper_lower")}>U/L 4d</Button>
-            <Button variant="rune" size="sm" onClick={() => usePreset("full_body")}>Full 3d</Button>
+            <Button variant="rune" size="sm" onClick={() => usePreset("ppl")} disabled={presetLoading !== null || generating}>
+              {presetLoading === "ppl" ? "..." : "PPL 6d"}
+            </Button>
+            <Button variant="rune" size="sm" onClick={() => usePreset("upper_lower")} disabled={presetLoading !== null || generating}>
+              {presetLoading === "upper_lower" ? "..." : "U/L 4d"}
+            </Button>
+            <Button variant="rune" size="sm" onClick={() => usePreset("full_body")} disabled={presetLoading !== null || generating}>
+              {presetLoading === "full_body" ? "..." : "Full 3d"}
+            </Button>
           </div>
         </div>
         <div className="mt-3">
