@@ -67,8 +67,8 @@ const Privacy = () => (
         <h2 className="font-display text-2xl text-primary">8. Contact</h2>
         <p>
           For privacy questions or data deletion requests, email{" "}
-          <a className="text-primary underline" href="mailto:privacy@mortalgyms.app">
-            privacy@mortalgyms.app
+          <a className="text-primary underline" href="mailto:mortalgyms@gmail.com">
+            mortalgyms@gmail.com
           </a>.
         </p>
       </section>
