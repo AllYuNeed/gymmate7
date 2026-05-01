@@ -72,7 +72,7 @@ const DataSafety = () => (
         <div className="panel p-6">
           <h2 className="font-display text-lg uppercase tracking-widest text-primary">Your Controls</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-foreground/90">
-            <li>Request data export or deletion via <a className="text-primary underline" href="mailto:privacy@mortalgyms.app">privacy@mortalgyms.app</a>.</li>
+            <li>Request data export or deletion via <a className="text-primary underline" href="mailto:mortalgyms@gmail.com">mortalgyms@gmail.com</a>.</li>
             <li>Disable push notifications anytime from the Sanctum.</li>
             <li>Choose a generic preset avatar to avoid uploading a photo.</li>
             <li>Block or unfriend users to stop receiving their messages.</li>
