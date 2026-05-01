@@ -12,8 +12,10 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // ✅ FIXED: Use OPENAI_API_KEY instead of LOVABLE_API_KEY
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -40,11 +42,12 @@ Deno.serve(async (req) => {
 
 Generate a routine matching ${hero.available_days} training days. Use mon/tue/wed style day labels.`;
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // ✅ FIXED: Call OpenAI API directly instead of ai.gateway.lovable.dev
+    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini", // Cost-effective and fast; swap to "gpt-4o" for higher quality
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
         tools: [{
           type: "function",
@@ -95,9 +98,9 @@ Generate a routine matching ${hero.available_days} training days. Use mon/tue/we
 
     if (!aiRes.ok) {
       if (aiRes.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded — try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (aiRes.status === 402) return new Response(JSON.stringify({ error: "Lovable AI credits required. Add funds in Settings → Workspace → Usage." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (aiRes.status === 402) return new Response(JSON.stringify({ error: "OpenAI credits required. Add funds at platform.openai.com." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const t = await aiRes.text();
-      console.error("AI gateway error:", aiRes.status, t);
+      console.error("OpenAI error:", aiRes.status, t);
       throw new Error("AI generation failed");
     }
     const aiJson = await aiRes.json();
