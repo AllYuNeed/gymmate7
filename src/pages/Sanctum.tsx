@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sigil } from "@/components/Sigil";
@@ -21,6 +21,7 @@ interface Hero {
   streak_days: number;
   streak_freezes: number;
   avatar_url: string | null;
+  gym_name: string | null;
 }
 
 const xpForLevel = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.5));
@@ -66,7 +67,7 @@ const Sanctum = () => {
     }
     supabase
       .from("heroes")
-      .select("hero_name, username, class, level, xp, coins, streak_days, streak_freezes, avatar_url")
+      .select("hero_name, username, class, level, xp, coins, streak_days, streak_freezes, avatar_url, gym_name")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -217,6 +218,33 @@ const Sanctum = () => {
           <StatCard glyph="✦" label="Streak" value={`${hero.streak_days} days`} />
           <StatCard glyph="❅" label="Freezes" value={`${hero.streak_freezes} / 2`} />
           <StatCard glyph="⚔" label="Level" value={`${hero.level}`} />
+        </section>
+
+        {/* Gym Journey Card */}
+        <section className="mt-8">
+          <Link
+            to="/gym-journey"
+            className="group block rounded-xl border border-border hover:border-primary/50 bg-surface-raised p-5 transition-all hover:shadow-[0_0_20px_hsl(45_90%_55%/0.1)]"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-xl">
+                  🏋️
+                </div>
+                <div>
+                  <p className="font-display text-xs uppercase tracking-widest text-muted-foreground">Current Gym</p>
+                  <p className="font-display text-base font-bold text-foreground">
+                    {hero.gym_name ?? (
+                      <span className="text-muted-foreground italic text-sm">Not set — tap to add</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <span className="font-display text-xs text-secondary group-hover:text-primary transition-colors">
+                View Journey →
+              </span>
+            </div>
+          </Link>
         </section>
 
         {/* Coming next teaser */}
