@@ -300,6 +300,54 @@ export type Database = {
         }
         Relationships: []
       }
+      gym_history: {
+        Row: {
+          id: string
+          user_id: string
+          gym_name: string
+          gym_location: string | null
+          gym_logo_url: string | null
+          gym_description: string | null
+          join_date: string
+          leave_date: string | null
+          is_current: boolean
+          xp_earned: number
+          workouts_completed: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          gym_name: string
+          gym_location?: string | null
+          gym_logo_url?: string | null
+          gym_description?: string | null
+          join_date?: string
+          leave_date?: string | null
+          is_current?: boolean
+          xp_earned?: number
+          workouts_completed?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          gym_name?: string
+          gym_location?: string | null
+          gym_logo_url?: string | null
+          gym_description?: string | null
+          join_date?: string
+          leave_date?: string | null
+          is_current?: boolean
+          xp_earned?: number
+          workouts_completed?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       guild_boss_damage: {
         Row: {
           damage: number
