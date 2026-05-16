@@ -186,12 +186,12 @@ const Forge = () => {
         if (q.type === "log_sets") {
           const np = q.progress + sets;
           const done = np >= q.target;
-          await supabase.from("daily_quests").update({ progress: np, completed: done }).eq("id", q.id);
+          await supabase.from("daily_quests").update({ progress: np }).eq("id", q.id);
         }
         if (q.type === "log_workout") {
           const np = q.progress + 1;
           const done = np >= q.target;
-          await supabase.from("daily_quests").update({ progress: np, completed: done }).eq("id", q.id);
+          await supabase.from("daily_quests").update({ progress: np }).eq("id", q.id);
         }
       }
 
