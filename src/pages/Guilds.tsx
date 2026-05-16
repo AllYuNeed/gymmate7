@@ -19,6 +19,18 @@ interface Guild {
   leader_user_id: string;
 }
 
+// ✅ Helper: extracts message from both standard Error and Supabase PostgrestError
+const errMsg = (e: unknown): string => {
+  if (!e) return "Unknown error";
+  if (typeof e === "object") {
+    if ("message" in e && typeof (e as { message: unknown }).message === "string")
+      return (e as { message: string }).message;
+    if ("error_description" in e && typeof (e as { error_description: unknown }).error_description === "string")
+      return (e as { error_description: string }).error_description;
+  }
+  return String(e);
+};
+
 const Guilds = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -47,9 +59,7 @@ const Guilds = () => {
     if (!user) return;
     setLoading(true);
     const { data: memberships } = await supabase
-      .from("guild_members")
-      .select("guild_id")
-      .eq("user_id", user.id);
+      .from("guild_members").select("guild_id").eq("user_id", user.id);
     const ids = (memberships ?? []).map((m) => m.guild_id);
     if (ids.length > 0) {
       const { data: mine } = await supabase.from("guilds").select("*").in("id", ids);
@@ -57,7 +67,8 @@ const Guilds = () => {
     } else {
       setMyGuilds([]);
     }
-    const { data: top } = await supabase.from("guilds").select("*").order("total_xp", { ascending: false }).limit(20);
+    const { data: top } = await supabase
+      .from("guilds").select("*").order("total_xp", { ascending: false }).limit(20);
     setTopGuilds((top ?? []) as Guild[]);
     setLoading(false);
   };
@@ -66,8 +77,10 @@ const Guilds = () => {
     if (!user || !newName.trim()) return;
     setCreating(true);
     try {
-      const { data: hero } = await supabase.from("heroes").select("country").eq("user_id", user.id).maybeSingle();
+      const { data: hero } = await supabase
+        .from("heroes").select("country").eq("user_id", user.id).maybeSingle();
       const code = generateInviteCode();
+
       const { data: g, error } = await supabase
         .from("guilds")
         .insert({
@@ -77,19 +90,30 @@ const Guilds = () => {
           invite_code: code,
           country: hero?.country ?? null,
           leader_user_id: user.id,
+          // ✅ FIX: Lovable created guilds table with owner_id (NOT NULL).
+          // We must supply it alongside leader_user_id to avoid the NOT NULL violation.
+          owner_id: user.id,
         })
         .select()
         .single();
+
+      // ✅ FIX: Properly surface Supabase errors (they are not instanceof Error)
       if (error) throw error;
-      // auto-join
-      await supabase.from("guild_members").insert({ guild_id: g.id, user_id: user.id, role: "leader" });
+
+      // Auto-join as leader
+      const { error: joinErr } = await supabase
+        .from("guild_members")
+        .insert({ guild_id: g.id, user_id: user.id, role: "leader" });
+      if (joinErr) throw joinErr;
+
       toast.success(`Guild forged! Invite code: ${code}`);
       setOpenCreate(false);
       setNewName(""); setNewDesc(""); setNewIcon("⚔");
       await loadAll();
       navigate(`/guilds/${g.id}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create guild");
+      // ✅ FIX: Shows real Supabase error message instead of generic fallback
+      toast.error(errMsg(e));
     } finally {
       setCreating(false);
     }
@@ -100,10 +124,13 @@ const Guilds = () => {
     setJoining(true);
     try {
       const code = joinCode.trim().toUpperCase();
-      const { data: g, error } = await supabase.from("guilds").select("id, name").eq("invite_code", code).maybeSingle();
+      const { data: g, error } = await supabase
+        .from("guilds").select("id, name").eq("invite_code", code).maybeSingle();
       if (error) throw error;
       if (!g) { toast.error("No guild matches that code."); return; }
-      const { error: jerr } = await supabase.from("guild_members").insert({ guild_id: g.id, user_id: user.id, role: "member" });
+
+      const { error: jerr } = await supabase
+        .from("guild_members").insert({ guild_id: g.id, user_id: user.id, role: "member" });
       if (jerr) {
         if (jerr.code === "23505") toast.error("You're already in this guild.");
         else throw jerr;
@@ -114,7 +141,7 @@ const Guilds = () => {
       await loadAll();
       navigate(`/guilds/${g.id}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to join guild");
+      toast.error(errMsg(e));
     } finally {
       setJoining(false);
     }
@@ -149,7 +176,9 @@ const Guilds = () => {
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={() => setOpenCreate(false)} className="flex-1">Cancel</Button>
-                <Button variant="hero" onClick={createGuild} disabled={creating || !newName.trim()} className="flex-1">{creating ? "Forging..." : "Forge"}</Button>
+                <Button variant="hero" onClick={createGuild} disabled={creating || !newName.trim()} className="flex-1">
+                  {creating ? "Forging..." : "Forge"}
+                </Button>
               </div>
             </div>
           )}
