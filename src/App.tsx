@@ -28,6 +28,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 import DataSafety from "./pages/DataSafety.tsx";
+import GymJourney from "./pages/GymJourney.tsx";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/data-safety" element={<DataSafety />} />
+            <Route path="/gym-journey" element={<GymJourney />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppShell>
