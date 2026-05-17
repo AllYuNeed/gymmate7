@@ -30,7 +30,6 @@ import Terms from "./pages/Terms.tsx";
 import DataSafety from "./pages/DataSafety.tsx";
 import GymJourney from "./pages/GymJourney.tsx";
 import ExerciseLibrary from "./pages/ExerciseLibrary.tsx";
-import AvatarSystem from "./pages/AvatarSystem.tsx";
 
 const queryClient = new QueryClient();
 
@@ -67,7 +66,6 @@ const App = () => (
             <Route path="/data-safety" element={<DataSafety />} />
             <Route path="/gym-journey" element={<GymJourney />} />
             <Route path="/exercises" element={<ExerciseLibrary />} />
-            <Route path="/avatars" element={<AvatarSystem />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppShell>
