@@ -86,7 +86,6 @@ function BottomNav() {
   const TABS = [
     { to: "/gym-journey", label: "Gym", glyph: "🏋️" },
     { to: "/exercises", label: "Library", glyph: "📚" },
-    { to: "/avatars", label: "Avatar", glyph: "🦸" },
     { to: "/sanctum", label: "Sanctum", glyph: "◆" },
     { to: "/forge", label: "Forge", glyph: "⚔" },
     { to: "/realms", label: "Realms", glyph: "☉" },
