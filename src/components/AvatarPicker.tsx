@@ -34,14 +34,13 @@ function AvatarSvgCard({ avatar, size = 72, locked, selected, onClick }: {
     <button
       type="button"
       onClick={onClick}
-      disabled={locked}
-      title={locked ? `Lv ${avatar.unlock_level} · ${avatar.unlock_xp.toLocaleString()} XP` : avatar.name}
+      title={locked ? `🔒 Requires Lv ${avatar.unlock_level} · ${avatar.unlock_xp.toLocaleString()} XP — tap to see details` : avatar.name}
       className={[
         "group relative flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-all duration-200",
         selected
           ? `${rs.border} bg-primary/10 shadow-lg ${rs.glow}`
           : locked
-          ? "border-border/40 bg-surface-deep/40 opacity-50 cursor-not-allowed"
+          ? "border-border/40 bg-surface-deep/40 opacity-60 cursor-pointer hover:opacity-80 hover:border-border"
           : `${rs.border} bg-surface-raised/60 hover:bg-surface-raised hover:-translate-y-0.5 ${rs.glow} cursor-pointer`,
       ].join(" ")}
     >
@@ -49,15 +48,15 @@ function AvatarSvgCard({ avatar, size = 72, locked, selected, onClick }: {
         <img
           src={dataUrl} alt={avatar.name} width={size} height={size}
           className={`rounded-full ring-2 transition-all ${selected ? rs.border.replace("border-", "ring-") : "ring-border/40"}`}
-          style={{ filter: locked ? "grayscale(0.8) brightness(0.5)" : undefined }}
+          style={{ filter: locked ? "grayscale(0.6) brightness(0.65)" : undefined }}
         />
         {selected && !locked && (
           <span className="absolute inset-0 rounded-full animate-ping opacity-20"
             style={{ boxShadow: `0 0 0 4px ${avatar.svgTheme.glow}` }} />
         )}
-        {locked && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
-            <span className="text-base">🔒</span>
+        {locked && !selected && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 group-hover:bg-black/20 transition-colors">
+            <span className="text-sm leading-none">🔒</span>
           </div>
         )}
         {selected && !locked && (
