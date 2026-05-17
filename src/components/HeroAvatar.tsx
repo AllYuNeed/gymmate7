@@ -1,4 +1,21 @@
 import { resolveAvatarSrc } from "@/data/avatars";
+import { AVATAR_CHARACTERS, generateAvatarSvg } from "@/data/avatarSystem";
+
+const ARCHETYPE_PREFIX = "archetype:";
+
+function resolveAnySrc(url: string | null | undefined): string | null {
+  if (!url) return null;
+  // Handle archetype: prefix — render as inline SVG data URL
+  if (url.startsWith(ARCHETYPE_PREFIX)) {
+    const id = url.slice(ARCHETYPE_PREFIX.length);
+    const character = AVATAR_CHARACTERS.find((a) => a.id === id);
+    if (!character) return null;
+    const svgString = generateAvatarSvg(character, 128);
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+  }
+  // Handle preset: prefix
+  return resolveAvatarSrc(url);
+}
 
 interface HeroAvatarProps {
   avatarUrl?: string | null;
@@ -8,9 +25,9 @@ interface HeroAvatarProps {
   glow?: boolean;
 }
 
-/** Round avatar with golden ring. Falls back to the hero's initial. */
+/** Round avatar with golden ring. Handles preset:, archetype:, and raw URLs. */
 export const HeroAvatar = ({ avatarUrl, name, size = 64, className = "", glow = false }: HeroAvatarProps) => {
-  const src = resolveAvatarSrc(avatarUrl);
+  const src = resolveAnySrc(avatarUrl);
   const initial = (name?.trim()?.[0] ?? "?").toUpperCase();
   const ring = glow ? "ring-2 ring-primary shadow-gold" : "ring-1 ring-border-bright/60";
 
