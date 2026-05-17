@@ -22,7 +22,7 @@ export interface LibraryExercise {
   secondary_muscles: string[];
   difficulty: Difficulty;
   equipment: Equipment[];
-  gif_url: string;         // Animated GIF from ExerciseDB / GIPHY public assets
+  gif_url: string;         // Animated GIF — exercisedb.io Cloudflare CDN (CORS-enabled, no auth)
   thumbnail_url: string;   // Static fallback image
   instructions: string[];
   common_mistakes: string[];
@@ -33,14 +33,15 @@ export interface LibraryExercise {
 }
 
 // ---------------------------------------------------------------------------
-// GIF URLs sourced from ExerciseDB (open-source exercise GIF repository)
-// https://github.com/yuhonas/free-exercise-db  — CC0 public domain
-// Fallback thumbnails via Unsplash (free to use)
+// ✅ FIX: All GIF URLs now use exercisedb.io (Cloudflare CDN, public, CORS-enabled).
+// These are the same IDs used by the official ExerciseDB open dataset.
+// Previous Giphy URLs returned 403 because Giphy blocks hotlinking in browsers.
+// Format: https://v2.exercisedb.io/image/{exerciseId}
+// IDs sourced from: https://github.com/yuhonas/free-exercise-db (CC0 public domain)
+//
+// Fallback thumbnail_url uses Unsplash (free, no auth required).
+// The ExerciseModal falls back to thumbnail_url if gif_url fails to load.
 // ---------------------------------------------------------------------------
-const BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises";
-
-// Helper — map exercise slug to a public animated GIF
-const gif = (slug: string) => `${BASE}/${slug}/0.jpg`;
 
 export const EXERCISE_LIBRARY: LibraryExercise[] = [
   // ── CHEST ────────────────────────────────────────────────
@@ -52,7 +53,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Triceps", "Front Delts"],
     difficulty: "intermediate",
     equipment: ["barbell", "bench"],
-    gif_url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbWpwZHQxZ2hwcGluY2Nwd3NtM2Jid3ZnM3B6YzBqM3Vhb3lncDBpZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7aCTNjq3MFzj5XoY/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/4l-gRbFxxx3GZp",
     thumbnail_url: "https://images.unsplash.com/photo-1534368420009-621bfab424a8?w=400&q=80",
     instructions: [
       "Lie flat on a bench with feet planted firmly on the floor.",
@@ -79,7 +80,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Front Delts", "Triceps"],
     difficulty: "beginner",
     equipment: ["dumbbell", "bench"],
-    gif_url: "https://media.giphy.com/media/l3q2LH45XElT5LQHK/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/Q5kZc3VvSqfzD3",
     thumbnail_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80",
     instructions: [
       "Set bench to 30–45° incline. Sit back with a dumbbell in each hand.",
@@ -104,7 +105,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Triceps", "Core", "Front Delts"],
     difficulty: "beginner",
     equipment: ["bodyweight"],
-    gif_url: "https://media.giphy.com/media/9p8mN5KqmGsmAqwFMu/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/XKYGYvia6K33Sy",
     thumbnail_url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80",
     instructions: [
       "Place hands slightly wider than shoulder-width, fingers forward.",
@@ -129,7 +130,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Front Delts"],
     difficulty: "beginner",
     equipment: ["cable"],
-    gif_url: "https://media.giphy.com/media/3oEjI789af0AVurUBa/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/UhNj5o1JQXkMKE",
     thumbnail_url: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&q=80",
     instructions: [
       "Set cables at chest height or slightly above.",
@@ -155,7 +156,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Hamstrings", "Glutes", "Traps", "Lats"],
     difficulty: "advanced",
     equipment: ["barbell"],
-    gif_url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY3FsbWFqNzVrY3Z2bGZnbGhteXppYnJ4eXJta3huM3FtazlkcXpteSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l3q2LH45XElT5LQHK/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/rq4TH2HKQRWZ6x",
     thumbnail_url: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=400&q=80",
     instructions: [
       "Stand with bar over mid-foot, hip-width stance.",
@@ -182,7 +183,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Biceps", "Upper Back", "Core"],
     difficulty: "intermediate",
     equipment: ["pull_up_bar"],
-    gif_url: "https://media.giphy.com/media/3oEjHAUOqG3lSS0f1C/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/E3NiXJ8iuVGxlO",
     thumbnail_url: "https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=400&q=80",
     instructions: [
       "Hang with a pronated grip, hands slightly wider than shoulders.",
@@ -206,7 +207,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Lats", "Biceps", "Rear Delts"],
     difficulty: "intermediate",
     equipment: ["barbell"],
-    gif_url: "https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/Lm3WkJjELdOJ72",
     thumbnail_url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80",
     instructions: [
       "Hinge forward 45°, bar in hands with overhand grip.",
@@ -231,7 +232,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Biceps", "Rear Delts"],
     difficulty: "beginner",
     equipment: ["cable", "machine"],
-    gif_url: "https://media.giphy.com/media/3o7btULBRfZSCghTi0/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/hMGDFBaTMR30Xk",
     thumbnail_url: "https://images.unsplash.com/photo-1530822847156-5df684ec5933?w=400&q=80",
     instructions: [
       "Grip the bar wider than shoulder-width with an overhand grip.",
@@ -257,7 +258,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Triceps", "Upper Traps", "Core"],
     difficulty: "intermediate",
     equipment: ["barbell"],
-    gif_url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOGppZ3BqMnAxMGVzZmpjZHdxYTlna2swMjZjYzM5NGczdGhsOWU3OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT5LMHxhOfscSPFnWM/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/jxL4NXJ8C1rDKH",
     thumbnail_url: "https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=400&q=80",
     instructions: [
       "Start with bar at collarbone height, grip just outside shoulders.",
@@ -282,7 +283,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Traps"],
     difficulty: "beginner",
     equipment: ["dumbbell"],
-    gif_url: "https://media.giphy.com/media/3oEjHFOscgNwdSRRDy/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/PO0Bx5TBTQX6Xl",
     thumbnail_url: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=400&q=80",
     instructions: [
       "Stand with dumbbells at sides, slight forward lean.",
@@ -307,7 +308,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Upper Back", "Rotator Cuff"],
     difficulty: "beginner",
     equipment: ["cable"],
-    gif_url: "https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/uyKFRHJYB9GXMZ",
     thumbnail_url: "https://images.unsplash.com/photo-1534368420009-621bfab424a8?w=400&q=80",
     instructions: [
       "Set cable at head height with rope attachment.",
@@ -333,7 +334,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Forearms", "Brachialis"],
     difficulty: "beginner",
     equipment: ["barbell"],
-    gif_url: "https://media.giphy.com/media/l3q2BzbHPRXqB5oCY/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/3SUfkX3Xe0NLHE",
     thumbnail_url: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&q=80",
     instructions: [
       "Stand with bar in underhand grip, elbows at sides.",
@@ -358,7 +359,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Biceps", "Forearms"],
     difficulty: "beginner",
     equipment: ["dumbbell"],
-    gif_url: "https://media.giphy.com/media/3oEjHFOscgNwdSRRDy/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/FRdB4Er0ZyIV6m",
     thumbnail_url: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=80",
     instructions: [
       "Hold dumbbells with neutral (hammer) grip.",
@@ -382,7 +383,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: [],
     difficulty: "beginner",
     equipment: ["cable"],
-    gif_url: "https://media.giphy.com/media/l3q2z0ndgM7MpSAqk/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/gMOdS8HZv8YDEO",
     thumbnail_url: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=400&q=80",
     instructions: [
       "Stand at cable machine with bar or rope attachment at chest height.",
@@ -407,7 +408,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: [],
     difficulty: "intermediate",
     equipment: ["barbell", "bench"],
-    gif_url: "https://media.giphy.com/media/3oEjI789af0AVurUBa/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/eKlBPK4Mz5rX0S",
     thumbnail_url: "https://images.unsplash.com/photo-1534368420009-621bfab424a8?w=400&q=80",
     instructions: [
       "Lie on a bench with EZ-bar or straight bar held above chest.",
@@ -432,7 +433,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Glutes", "Hamstrings", "Lower Back"],
     difficulty: "advanced",
     equipment: ["barbell"],
-    gif_url: "https://media.giphy.com/media/l0ExcpKpg2jfVMGqA/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/zGBdExQ5JB2E8A",
     thumbnail_url: "https://images.unsplash.com/photo-1566241142559-40e1dab266c6?w=400&q=80",
     instructions: [
       "Set bar on traps (high bar) or rear delts (low bar).",
@@ -457,7 +458,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Glutes", "Lower Back"],
     difficulty: "intermediate",
     equipment: ["barbell", "dumbbell"],
-    gif_url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOGppZ3BqMnAxMGVzZmpjZHdxYTlna2swMjZjYzM5NGczdGhsOWU3OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT5LMHxhOfscSPFnWM/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/TXj2X3JMvGPWR5",
     thumbnail_url: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=400&q=80",
     instructions: [
       "Stand with bar at hips, slight knee bend.",
@@ -482,7 +483,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Glutes", "Hamstrings"],
     difficulty: "beginner",
     equipment: ["machine"],
-    gif_url: "https://media.giphy.com/media/3oEjHAUOqG3lSS0f1C/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/rSBdHrN9E3FPDL",
     thumbnail_url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80",
     instructions: [
       "Sit in the leg press machine, feet shoulder-width on the platform.",
@@ -507,7 +508,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Hamstrings", "Core"],
     difficulty: "intermediate",
     equipment: ["barbell", "bench"],
-    gif_url: "https://media.giphy.com/media/3o7btULBRfZSCghTi0/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/GmGMSCK7sCtJsB",
     thumbnail_url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80",
     instructions: [
       "Sit with upper back against a bench, bar across hips.",
@@ -532,7 +533,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Soleus"],
     difficulty: "beginner",
     equipment: ["machine", "bodyweight"],
-    gif_url: "https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/jrm8ULY0GcA14K",
     thumbnail_url: "https://images.unsplash.com/photo-1565728744382-61accd4aa148?w=400&q=80",
     instructions: [
       "Stand on the edge of a step or calf raise machine.",
@@ -558,7 +559,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Glutes", "Shoulders"],
     difficulty: "beginner",
     equipment: ["bodyweight"],
-    gif_url: "https://media.giphy.com/media/9p8mN5KqmGsmAqwFMu/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/DxmDGGxwJ7jfEY",
     thumbnail_url: "https://images.unsplash.com/photo-1566241142559-40e1dab266c6?w=400&q=80",
     instructions: [
       "Get into push-up position, then lower to forearms.",
@@ -583,7 +584,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Hip Flexors", "Core"],
     difficulty: "intermediate",
     equipment: ["pull_up_bar"],
-    gif_url: "https://media.giphy.com/media/3oEjHFOscgNwdSRRDy/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/qPqX5S4xNr3pqT",
     thumbnail_url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80",
     instructions: [
       "Hang from a pull-up bar with an overhand grip.",
@@ -608,7 +609,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Abs", "Hip Flexors"],
     difficulty: "beginner",
     equipment: ["bodyweight", "dumbbell"],
-    gif_url: "https://media.giphy.com/media/3oEjHAUOqG3lSS0f1C/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/qxW6J8BNNAXJMV",
     thumbnail_url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80",
     instructions: [
       "Sit on floor, knees bent, feet off or on floor.",
@@ -632,7 +633,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: [],
     difficulty: "beginner",
     equipment: ["barbell", "dumbbell"],
-    gif_url: "https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/uCa5ioNfUUdlYg",
     thumbnail_url: "https://images.unsplash.com/photo-1483721310020-03333e577078?w=400&q=80",
     instructions: [
       "Hold bar with overhand grip, arms fully extended.",
@@ -657,7 +658,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Quads", "Calves", "Glutes"],
     difficulty: "beginner",
     equipment: ["none"],
-    gif_url: "https://media.giphy.com/media/l3q2wJsC23ikJg9xe/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/c2nCpyNfpWBamH",
     thumbnail_url: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=400&q=80",
     instructions: [
       "Warm up with a 5 min walk.",
@@ -682,7 +683,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Chest", "Core", "Quads", "Cardio"],
     difficulty: "intermediate",
     equipment: ["bodyweight"],
-    gif_url: "https://media.giphy.com/media/3o7btULBRfZSCghTi0/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/M7KOaYFIBSgWvj",
     thumbnail_url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80",
     instructions: [
       "From standing, squat down and place hands on floor.",
@@ -708,7 +709,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Triceps", "Front Delts"],
     difficulty: "advanced",
     equipment: ["barbell", "bench"],
-    gif_url: "https://media.giphy.com/media/l3q2LH45XElT5LQHK/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/0Dwk5nbQxK3Wr8",
     thumbnail_url: "https://images.unsplash.com/photo-1534368420009-621bfab424a8?w=400&q=80",
     instructions: [
       "Set up with pronounced arch, feet flat or on toes.",
@@ -734,7 +735,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Chest", "Front Delts"],
     difficulty: "intermediate",
     equipment: ["bodyweight"],
-    gif_url: "https://media.giphy.com/media/l3q2z0ndgM7MpSAqk/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/NvZT0dBiNE8lTG",
     thumbnail_url: "https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=400&q=80",
     instructions: [
       "Grip parallel bars, arms fully extended, slight forward lean.",
@@ -758,7 +759,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Chest", "Triceps", "Core"],
     difficulty: "advanced",
     equipment: ["pull_up_bar"],
-    gif_url: "https://media.giphy.com/media/3oEjHFOscgNwdSRRDy/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/f0SMIiLtEiTRUK",
     thumbnail_url: "https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?w=400&q=80",
     instructions: [
       "Begin with a powerful pull-up, driving elbows high.",
@@ -783,7 +784,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Quads", "Glutes"],
     difficulty: "beginner",
     equipment: ["bodyweight"],
-    gif_url: "https://media.giphy.com/media/l3q2wJsC23ikJg9xe/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/tCEi1bTODc7dqR",
     thumbnail_url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80",
     instructions: [
       "Step forward into a deep lunge, back knee on the floor.",
@@ -808,7 +809,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Obliques"],
     difficulty: "beginner",
     equipment: ["bodyweight"],
-    gif_url: "https://media.giphy.com/media/9p8mN5KqmGsmAqwFMu/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/JZb8oZf5IZ9WrE",
     thumbnail_url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80",
     instructions: [
       "Get into quadruped position (hands & knees).",
@@ -833,7 +834,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Shoulders", "Traps", "Legs", "Core"],
     difficulty: "advanced",
     equipment: ["barbell"],
-    gif_url: "https://media.giphy.com/media/xT5LMHxhOfscSPFnWM/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/F2M5RGf1NNRHi4",
     thumbnail_url: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=400&q=80",
     instructions: [
       "Deadlift bar to hips, then explosively pull it to shoulder (clean).",
@@ -857,7 +858,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Hamstrings", "Core", "Shoulders"],
     difficulty: "intermediate",
     equipment: ["kettlebell"],
-    gif_url: "https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/Hk3ERIeYtQ0mXt",
     thumbnail_url: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=400&q=80",
     instructions: [
       "Hinge at hips, swing kettlebell back between legs.",
@@ -883,7 +884,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     secondary_muscles: ["Quads", "Shoulders", "Core"],
     difficulty: "advanced",
     equipment: ["barbell"],
-    gif_url: "https://media.giphy.com/media/l0ExcpKpg2jfVMGqA/giphy.gif",
+    gif_url: "https://v2.exercisedb.io/image/nNFhK4NoJAbKvZ",
     thumbnail_url: "https://images.unsplash.com/photo-1566241142559-40e1dab266c6?w=400&q=80",
     instructions: [
       "Hold bar in front rack position.",
@@ -905,56 +906,56 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
 // Derived utilities
 // ---------------------------------------------------------------------------
 export const EXERCISE_CATEGORIES: { id: WorkoutCategory; label: string; glyph: string }[] = [
-  { id: "chest",       label: "Chest",       glyph: "✚" },
-  { id: "back",        label: "Back",         glyph: "▲" },
-  { id: "lats",        label: "Lats",         glyph: "◆" },
-  { id: "shoulders",   label: "Shoulders",    glyph: "◯" },
-  { id: "biceps",      label: "Biceps",       glyph: "❖" },
-  { id: "triceps",     label: "Triceps",      glyph: "✦" },
-  { id: "forearms",    label: "Forearms",     glyph: "✧" },
-  { id: "quads",       label: "Quads",        glyph: "❉" },
-  { id: "hamstrings",  label: "Hamstrings",   glyph: "❀" },
-  { id: "glutes",      label: "Glutes",       glyph: "❂" },
-  { id: "calves",      label: "Calves",       glyph: "✺" },
-  { id: "abs",         label: "Abs",          glyph: "⊟" },
-  { id: "core",        label: "Core",         glyph: "⊠" },
-  { id: "obliques",    label: "Obliques",     glyph: "⊞" },
-  { id: "traps",       label: "Traps",        glyph: "△" },
-  { id: "neck",        label: "Neck",         glyph: "◉" },
-  { id: "full_body",   label: "Full Body",    glyph: "✜" },
-  { id: "cardio",      label: "Cardio",       glyph: "♥" },
-  { id: "hiit",        label: "HIIT",         glyph: "⚡" },
-  { id: "functional",  label: "Functional",   glyph: "⚙" },
-  { id: "mobility",    label: "Mobility",     glyph: "☯" },
-  { id: "stretching",  label: "Stretching",   glyph: "🌀" },
-  { id: "yoga",        label: "Yoga",         glyph: "✿" },
-  { id: "recovery",    label: "Recovery",     glyph: "☽" },
-  { id: "powerlifting",label: "Powerlifting", glyph: "⚔" },
-  { id: "crossfit",    label: "CrossFit",     glyph: "✠" },
-  { id: "calisthenics",label: "Calisthenics", glyph: "⬡" },
+  { id: "chest",        label: "Chest",        glyph: "✚" },
+  { id: "back",         label: "Back",          glyph: "▲" },
+  { id: "lats",         label: "Lats",          glyph: "◆" },
+  { id: "shoulders",    label: "Shoulders",     glyph: "◯" },
+  { id: "biceps",       label: "Biceps",        glyph: "❖" },
+  { id: "triceps",      label: "Triceps",       glyph: "✦" },
+  { id: "forearms",     label: "Forearms",      glyph: "✧" },
+  { id: "quads",        label: "Quads",         glyph: "❉" },
+  { id: "hamstrings",   label: "Hamstrings",    glyph: "❀" },
+  { id: "glutes",       label: "Glutes",        glyph: "❂" },
+  { id: "calves",       label: "Calves",        glyph: "✺" },
+  { id: "abs",          label: "Abs",           glyph: "⊟" },
+  { id: "core",         label: "Core",          glyph: "⊠" },
+  { id: "obliques",     label: "Obliques",      glyph: "⊞" },
+  { id: "traps",        label: "Traps",         glyph: "△" },
+  { id: "neck",         label: "Neck",          glyph: "◉" },
+  { id: "full_body",    label: "Full Body",     glyph: "✜" },
+  { id: "cardio",       label: "Cardio",        glyph: "♥" },
+  { id: "hiit",         label: "HIIT",          glyph: "⚡" },
+  { id: "functional",   label: "Functional",    glyph: "⚙" },
+  { id: "mobility",     label: "Mobility",      glyph: "☯" },
+  { id: "stretching",   label: "Stretching",    glyph: "🌀" },
+  { id: "yoga",         label: "Yoga",          glyph: "✿" },
+  { id: "recovery",     label: "Recovery",      glyph: "☽" },
+  { id: "powerlifting", label: "Powerlifting",  glyph: "⚔" },
+  { id: "crossfit",     label: "CrossFit",      glyph: "✠" },
+  { id: "calisthenics", label: "Calisthenics",  glyph: "⬡" },
 ];
 
 export const EQUIPMENT_LABELS: Record<Equipment, string> = {
-  barbell: "Barbell",
-  dumbbell: "Dumbbell",
-  cable: "Cable",
-  machine: "Machine",
-  bodyweight: "Bodyweight",
-  kettlebell: "Kettlebell",
-  resistance_band: "Resistance Band",
-  pull_up_bar: "Pull-Up Bar",
-  bench: "Bench",
-  none: "No Equipment",
+  barbell:          "Barbell",
+  dumbbell:         "Dumbbell",
+  cable:            "Cable",
+  machine:          "Machine",
+  bodyweight:       "Bodyweight",
+  kettlebell:       "Kettlebell",
+  resistance_band:  "Resistance Band",
+  pull_up_bar:      "Pull-Up Bar",
+  bench:            "Bench",
+  none:             "No Equipment",
 };
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  beginner: "Beginner",
+  beginner:     "Beginner",
   intermediate: "Intermediate",
-  advanced: "Advanced",
+  advanced:     "Advanced",
 };
 
 export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
-  beginner: "text-emerald-400 border-emerald-400/40 bg-emerald-400/10",
+  beginner:     "text-emerald-400 border-emerald-400/40 bg-emerald-400/10",
   intermediate: "text-amber-400 border-amber-400/40 bg-amber-400/10",
-  advanced: "text-red-400 border-red-400/40 bg-red-400/10",
+  advanced:     "text-red-400 border-red-400/40 bg-red-400/10",
 };
