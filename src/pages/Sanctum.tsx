@@ -280,6 +280,9 @@ const Sanctum = () => {
           userId={user.id}
           currentAvatarUrl={hero.avatar_url}
           heroName={hero.hero_name}
+          heroXp={hero.xp}
+          heroLevel={hero.level}
+          heroStreak={hero.streak_days}
           onSaved={(url) => setHero((h) => (h ? { ...h, avatar_url: url } : h))}
         />
       )}
