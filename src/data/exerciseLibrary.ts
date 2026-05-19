@@ -22,7 +22,7 @@ export interface LibraryExercise {
   secondary_muscles: string[];
   difficulty: Difficulty;
   equipment: Equipment[];
-  gif_url: string;         // Animated GIF — exercisedb.io Cloudflare CDN (CORS-enabled, no auth)
+  gif_url: string;         // Legacy animated demo URL, kept as a fallback source.
   thumbnail_url: string;   // Static fallback image
   instructions: string[];
   common_mistakes: string[];
@@ -32,16 +32,56 @@ export interface LibraryExercise {
   tags: string[];
 }
 
-// ---------------------------------------------------------------------------
-// ✅ FIX: All GIF URLs now use exercisedb.io (Cloudflare CDN, public, CORS-enabled).
-// These are the same IDs used by the official ExerciseDB open dataset.
-// Previous Giphy URLs returned 403 because Giphy blocks hotlinking in browsers.
-// Format: https://v2.exercisedb.io/image/{exerciseId}
-// IDs sourced from: https://github.com/yuhonas/free-exercise-db (CC0 public domain)
-//
-// Fallback thumbnail_url uses Unsplash (free, no auth required).
-// The ExerciseModal falls back to thumbnail_url if gif_url fails to load.
-// ---------------------------------------------------------------------------
+const FREE_EXERCISE_DB_IMAGE_ROOT =
+  "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+
+const EXERCISE_DEMO_FRAME_IDS: Partial<Record<string, string>> = {
+  barbell_bench_press: "Barbell_Bench_Press_-_Medium_Grip",
+  incline_dumbbell_press: "Incline_Dumbbell_Press",
+  push_up: "Pushups",
+  cable_fly: "Flat_Bench_Cable_Flyes",
+  deadlift: "Barbell_Deadlift",
+  pull_up: "Pullups",
+  barbell_row: "Bent_Over_Barbell_Row",
+  lat_pulldown: "Wide-Grip_Lat_Pulldown",
+  overhead_press: "Barbell_Shoulder_Press",
+  lateral_raise: "Side_Lateral_Raise",
+  face_pull: "Face_Pull",
+  barbell_curl: "Barbell_Curl",
+  hammer_curl: "Hammer_Curls",
+  tricep_pushdown: "Triceps_Pushdown",
+  skull_crusher: "Decline_Close-Grip_Bench_To_Skull_Crusher",
+  barbell_squat: "Barbell_Squat",
+  romanian_deadlift: "Romanian_Deadlift",
+  leg_press: "Leg_Press",
+  hip_thrust: "Barbell_Hip_Thrust",
+  calf_raise: "Standing_Calf_Raises",
+  plank: "Plank",
+  hanging_leg_raise: "Hanging_Leg_Raise",
+  russian_twist: "Russian_Twist",
+  barbell_shrug: "Barbell_Shrug",
+  bench_press_competition: "Bench_Press_-_Powerlifting",
+  dips: "Dips_-_Chest_Version",
+  muscle_up: "Muscle_Up",
+  hip_flexor_stretch: "Kneeling_Hip_Flexor",
+  thoracic_rotation: "Torso_Rotation",
+  clean_and_press: "Clean_and_Press",
+  kettlebell_swing: "One-Arm_Kettlebell_Swings",
+  thruster: "Kettlebell_Thruster",
+};
+
+export function getExerciseDemoFrames(exercise: LibraryExercise): string[] {
+  const frameId = EXERCISE_DEMO_FRAME_IDS[exercise.id];
+
+  if (!frameId) {
+    return [exercise.gif_url];
+  }
+
+  return [
+    `${FREE_EXERCISE_DB_IMAGE_ROOT}${frameId}/0.jpg`,
+    `${FREE_EXERCISE_DB_IMAGE_ROOT}${frameId}/1.jpg`,
+  ];
+}
 
 export const EXERCISE_LIBRARY: LibraryExercise[] = [
   // ── CHEST ────────────────────────────────────────────────
