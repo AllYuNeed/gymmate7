@@ -141,21 +141,47 @@ export function computeClass(answers: QuizAnswers): ClassId {
   const injuries = (answers.injuries as string[]) ?? [];
 
   const hasInjuries = injuries.length > 0 && !injuries.includes("none");
-  if (sleep === "poor" || stress === "high" || hasInjuries) {
-    if (sleep === "poor" && (stress === "high" || hasInjuries)) return "recovery_focused";
+  const recoveryRisk = sleep === "poor" || stress === "high" || hasInjuries;
+
+  if (recoveryRisk && (sleep === "poor" || hasInjuries)) {
+    switch (experience) {
+      case "master":
+        return "restoration_oracle";
+      case "veteran":
+        return "mobility_sage";
+      case "adept":
+        return "recovery_focused";
+      default:
+        return "recovery_apprentice";
+    }
   }
 
-  if (experience === "master" && days >= 5 && sleep !== "poor") return "elite_athlete";
+  const experienceTier = experience || "novice";
 
   switch (goal) {
-    case "strength":
-      return "strength_builder";
-    case "muscle_gain":
-      return "muscle_gain_specialist";
+    case "strength": {
+      if (experienceTier === "master" && days >= 5) return "strength_legend";
+      if (experienceTier === "veteran") return "strength_vanguard";
+      if (experienceTier === "adept") return "strength_builder";
+      return "strength_initiate";
+    }
+    case "muscle_gain": {
+      if (experienceTier === "master" && days >= 5) return "physique_archon";
+      if (experienceTier === "veteran") return "hypertrophy_alchemist";
+      if (experienceTier === "adept") return "muscle_gain_specialist";
+      return "muscle_foundation";
+    }
     case "fat_loss":
-      return days >= 4 ? "endurance_athlete" : "hybrid_performer";
-    case "athletic":
-      return "hybrid_performer";
+      if (experienceTier === "master" && days >= 5) return "metabolic_sage";
+      if (experienceTier === "veteran" || days >= 5) return "endurance_vanguard";
+      if (experienceTier === "adept" || days >= 4) return "endurance_athlete";
+      return "conditioning_initiate";
+    case "athletic": {
+      if (experienceTier === "master" && days >= 5) return "elite_athlete";
+      if (experienceTier === "veteran" || days >= 5) return "performance_vanguard";
+      if (experienceTier === "adept" || days >= 4) return "hybrid_performer";
+      return "movement_initiate";
+    }
     default:
       return "hybrid_performer";
   }
