@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AlertCircle, Pause, Play } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,6 +11,7 @@ import {
   EQUIPMENT_LABELS,
   DIFFICULTY_LABELS,
   DIFFICULTY_COLORS,
+  getExerciseDemoFrames,
   type LibraryExercise,
   type WorkoutCategory,
   type Difficulty,
@@ -47,26 +48,81 @@ function ExerciseModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const [gifLoaded, setGifLoaded] = useState(false);
-  const [gifPlaying, setGifPlaying] = useState(true);
-  const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const demoFrames = useMemo(() => (exercise ? getExerciseDemoFrames(exercise) : []), [exercise]);
+  const [demoReady, setDemoReady] = useState(false);
+  const [demoPlaying, setDemoPlaying] = useState(true);
+  const [demoUnavailable, setDemoUnavailable] = useState(false);
+  const [frameIndex, setFrameIndex] = useState(0);
 
-  // reset when exercise changes
-  if (exercise && imgSrc !== exercise.gif_url && gifPlaying) {
-    setImgSrc(exercise.gif_url);
-    setGifLoaded(false);
-  }
+  useEffect(() => {
+    setDemoReady(false);
+    setDemoPlaying(true);
+    setDemoUnavailable(false);
+    setFrameIndex(0);
+  }, [exercise?.id]);
+
+  useEffect(() => {
+    if (!exercise || demoFrames.length === 0) return;
+
+    let cancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      if (!cancelled) {
+        setDemoUnavailable(true);
+        setDemoReady(true);
+      }
+    }, 8000);
+
+    Promise.all(
+      demoFrames.map(
+        (src) =>
+          new Promise<void>((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => reject(new Error(`Could not load ${src}`));
+            img.src = src;
+          })
+      )
+    )
+      .then(() => {
+        if (!cancelled) {
+          setDemoReady(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDemoUnavailable(true);
+          setDemoReady(true);
+        }
+      })
+      .finally(() => window.clearTimeout(timeoutId));
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [demoFrames, exercise]);
+
+  useEffect(() => {
+    if (!demoReady || demoUnavailable || !demoPlaying || demoFrames.length < 2) return;
+
+    const intervalId = window.setInterval(() => {
+      setFrameIndex((index) => (index + 1) % demoFrames.length);
+    }, 850);
+
+    return () => window.clearInterval(intervalId);
+  }, [demoFrames.length, demoPlaying, demoReady, demoUnavailable]);
 
   if (!exercise) return null;
 
   const togglePlay = () => {
-    if (gifPlaying) {
-      setImgSrc(exercise.thumbnail_url);
-    } else {
-      setImgSrc(exercise.gif_url);
-    }
-    setGifPlaying((p) => !p);
+    if (demoUnavailable || demoFrames.length < 2) return;
+    setDemoPlaying((p) => !p);
   };
+
+  const demoSrc = demoUnavailable
+    ? exercise.thumbnail_url
+    : demoFrames[frameIndex] ?? exercise.thumbnail_url;
+  const demoLabel = demoUnavailable ? "Static Preview" : demoPlaying ? "Live Demo" : "Paused";
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -88,36 +144,37 @@ function ExerciseModal({
               </div>
             </DialogHeader>
 
-            {/* GIF Demo */}
+            {/* Demo player */}
             <div className="relative mb-6 overflow-hidden rounded-xl border border-border bg-surface-deep">
               <div className="relative aspect-video flex items-center justify-center bg-black/40">
-                {!gifLoaded && (
+                {!demoReady && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   </div>
                 )}
                 <img
-                  src={imgSrc ?? exercise.gif_url}
+                  src={demoSrc}
                   alt={`${exercise.name} demonstration`}
-                  className={`h-full w-full object-contain transition-opacity duration-500 ${gifLoaded ? "opacity-100" : "opacity-0"}`}
-                  onLoad={() => setGifLoaded(true)}
+                  className={`h-full w-full object-contain transition-opacity duration-500 ${demoReady ? "opacity-100" : "opacity-0"}`}
                   onError={() => {
-                    setImgSrc(exercise.thumbnail_url);
-                    setGifLoaded(true);
+                    setDemoUnavailable(true);
+                    setDemoReady(true);
                   }}
                 />
                 {/* Controls overlay */}
                 <div className="absolute bottom-3 right-3 flex gap-2">
                   <button
                     onClick={togglePlay}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm hover:bg-black/80 transition-colors"
-                    title={gifPlaying ? "Pause" : "Play"}
+                    disabled={demoUnavailable || demoFrames.length < 2}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-50"
+                    title={demoPlaying ? "Pause" : "Play"}
                   >
-                    {gifPlaying ? "⏸" : "▶"}
+                    {demoPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </button>
                 </div>
-                <div className="absolute top-3 left-3 rounded bg-black/60 px-2 py-1 text-[10px] font-display uppercase tracking-widest text-white/80 backdrop-blur-sm">
-                  {gifPlaying ? "● Live Demo" : "Paused"}
+                <div className="absolute top-3 left-3 inline-flex items-center gap-1 rounded bg-black/60 px-2 py-1 text-[10px] font-display uppercase tracking-widest text-white/80 backdrop-blur-sm">
+                  {demoUnavailable && <AlertCircle className="h-3 w-3" />}
+                  {demoLabel}
                 </div>
               </div>
             </div>
@@ -190,6 +247,8 @@ function ExerciseModal({
 // ── Exercise Card ──────────────────────────────────────────
 function ExerciseCard({ exercise, onClick }: { exercise: LibraryExercise; onClick: () => void }) {
   const [imgError, setImgError] = useState(false);
+  const previewFrames = useMemo(() => getExerciseDemoFrames(exercise), [exercise]);
+  const previewSrc = previewFrames[0] ?? exercise.thumbnail_url;
 
   return (
     <button
@@ -199,7 +258,7 @@ function ExerciseCard({ exercise, onClick }: { exercise: LibraryExercise; onClic
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden bg-surface-deep">
         <img
-          src={imgError ? exercise.thumbnail_url : exercise.gif_url}
+          src={imgError ? exercise.thumbnail_url : previewSrc}
           alt={exercise.name}
           className="h-full w-full object-cover opacity-80 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105"
           onError={() => setImgError(true)}
@@ -215,7 +274,9 @@ function ExerciseCard({ exercise, onClick }: { exercise: LibraryExercise; onClic
         </div>
         {/* Play hint */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-          <div className="rounded-full bg-black/60 p-3 text-2xl backdrop-blur-sm">▶</div>
+          <div className="rounded-full bg-black/60 p-3 text-white backdrop-blur-sm">
+            <Play className="h-6 w-6" />
+          </div>
         </div>
       </div>
 
@@ -251,11 +312,6 @@ const ExerciseLibrary = () => {
   const [selectedExercise, setSelectedExercise] = useState<LibraryExercise | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  if (!authLoading && !user) {
-    navigate("/auth");
-    return null;
-  }
-
   // Derive all equipment options present in the library
   const allEquipment = useMemo(() => {
     const set = new Set<Equipment>();
@@ -282,6 +338,17 @@ const ExerciseLibrary = () => {
   };
 
   const hasFilters = activeCategory !== ALL || activeDifficulty !== ALL || activeEquipment !== ALL || search !== "";
+  const shouldRedirectToAuth = !authLoading && !user;
+
+  useEffect(() => {
+    if (shouldRedirectToAuth) {
+      navigate("/auth");
+    }
+  }, [navigate, shouldRedirectToAuth]);
+
+  if (shouldRedirectToAuth) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen pb-28 pt-6">
