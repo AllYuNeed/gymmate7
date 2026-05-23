@@ -1,16 +1,23 @@
 // ══════════════════════════════════════════════════════════════
-//  STREAK LOGIC — client-side helpers
+//  STREAK LOGIC — client-side helpers (IST-aware)
 //  All heavy logic runs server-side via process_streak_on_workout()
 //  These helpers are for display, calendar, and UI calculations.
 // ══════════════════════════════════════════════════════════════
 
 import { supabase } from "@/integrations/supabase/client";
+import {
+  todayIST, isSundayIST, isTodaySundayIST,
+  daysUntilMonthResetIST, buildCalendarGridIST, isoToISTDateStr,
+  type CalendarDay,
+} from "@/lib/ist";
+
+export type { CalendarDay };
 
 export interface StreakState {
   streak_days: number;
   longest_streak: number;
   streak_shield_count: number;
-  shield_reset_date: string;       // ISO date "YYYY-MM-DD"
+  shield_reset_date: string;
   sunday_protection: boolean;
   last_workout_date: string | null;
 }
@@ -25,12 +32,8 @@ export interface ShieldLogEntry {
 }
 
 export type StreakAction =
-  | "started"
-  | "extended"
-  | "sunday_protected"
-  | "shield_used"
-  | "broken"
-  | "already_logged";
+  | "started" | "extended" | "sunday_protected"
+  | "shield_used" | "broken" | "already_logged";
 
 export interface StreakResult {
   action: StreakAction;
@@ -40,21 +43,17 @@ export interface StreakResult {
   shields_used?: number;
 }
 
-// ── Date helpers ───────────────────────────────────────────────
-export const todayISO = (): string => new Date().toISOString().slice(0, 10);
-export const isSunday = (date: Date = new Date()): boolean => date.getDay() === 0;
-export const isSundayStr = (iso: string): boolean => new Date(iso + "T12:00:00").getDay() === 0;
+// ── Re-export IST helpers used by StreakDashboard ──────────────
+export { isSundayIST, isTodaySundayIST, daysUntilMonthResetIST, buildCalendarGridIST, todayIST };
+export const isSunday = isTodaySundayIST;
+export const isSundayStr = isSundayIST;
 
-/** Days until next monthly shield reset */
-export function daysUntilMonthReset(): number {
-  const now = new Date();
-  const nextMonth = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 1));
-  return Math.ceil((nextMonth.getTime() - now.getTime()) / 86_400_000);
-}
+/** Days until next monthly shield reset (IST) */
+export const daysUntilMonthReset = daysUntilMonthResetIST;
 
 /** Human-readable shield reset countdown */
 export function shieldResetLabel(): string {
-  const d = daysUntilMonthReset();
+  const d = daysUntilMonthResetIST();
   if (d <= 1) return "Resets tomorrow";
   return `Resets in ${d} days`;
 }
@@ -80,56 +79,19 @@ export function streakTier(days: number): "none" | "warm" | "hot" | "blazing" | 
 }
 
 export const STREAK_TIER_META = {
-  none:    { label: "Cold",    color: "text-muted-foreground",  glow: "",                                flame: "🌑", xpBonus: 1.0 },
-  warm:    { label: "Warm",    color: "text-amber-400",         glow: "shadow-[0_0_12px_#f59e0b80]",     flame: "🔥", xpBonus: 1.05 },
-  hot:     { label: "Hot",     color: "text-orange-400",        glow: "shadow-[0_0_18px_#fb923c90]",     flame: "🔥", xpBonus: 1.1 },
-  blazing: { label: "Blazing", color: "text-red-400",           glow: "shadow-[0_0_24px_#f87171aa]",     flame: "💥", xpBonus: 1.2 },
-  inferno: { label: "Inferno", color: "text-primary",           glow: "shadow-[0_0_32px_hsl(45_90%_60%/0.9)]", flame: "⚡", xpBonus: 1.35 },
+  none:    { label: "Cold",    color: "text-muted-foreground", glow: "",                                             flame: "🌑", xpBonus: 1.0  },
+  warm:    { label: "Warm",    color: "text-amber-400",        glow: "shadow-[0_0_12px_#f59e0b80]",                  flame: "🔥", xpBonus: 1.05 },
+  hot:     { label: "Hot",     color: "text-orange-400",       glow: "shadow-[0_0_18px_#fb923c90]",                  flame: "🔥", xpBonus: 1.1  },
+  blazing: { label: "Blazing", color: "text-red-400",          glow: "shadow-[0_0_24px_#f87171aa]",                  flame: "💥", xpBonus: 1.2  },
+  inferno: { label: "Inferno", color: "text-primary",          glow: "shadow-[0_0_32px_hsl(45_90%_60%/0.9)]",        flame: "⚡", xpBonus: 1.35 },
 } as const;
 
-/** Build 35-day calendar grid (5 weeks) centred on today */
-export interface CalendarDay {
-  iso: string;           // "YYYY-MM-DD"
-  date: Date;
-  dayOfMonth: number;
-  isSunday: boolean;
-  isToday: boolean;
-  isFuture: boolean;
-  isCurrentMonth: boolean;
-}
-
+/** Build 35-day IST calendar grid */
 export function buildCalendarGrid(): CalendarDay[] {
-  const today = new Date();
-  today.setHours(12, 0, 0, 0);
-  const todayStr = today.toISOString().slice(0, 10);
-
-  // Start from the Sunday of the week containing the 1st of this month
-  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  firstOfMonth.setHours(12, 0, 0, 0);
-  const startOffset = firstOfMonth.getDay(); // 0=Sun
-  const gridStart = new Date(firstOfMonth);
-  gridStart.setDate(gridStart.getDate() - startOffset);
-
-  const days: CalendarDay[] = [];
-  for (let i = 0; i < 35; i++) {
-    const d = new Date(gridStart);
-    d.setDate(gridStart.getDate() + i);
-    d.setHours(12, 0, 0, 0);
-    const iso = d.toISOString().slice(0, 10);
-    days.push({
-      iso,
-      date: d,
-      dayOfMonth: d.getDate(),
-      isSunday: d.getDay() === 0,
-      isToday: iso === todayStr,
-      isFuture: iso > todayStr,
-      isCurrentMonth: d.getMonth() === today.getMonth(),
-    });
-  }
-  return days;
+  return buildCalendarGridIST();
 }
 
-/** Call the server-side streak function after logging a workout */
+/** Call the server-side streak RPC after logging a workout */
 export async function processStreakOnWorkout(userId: string): Promise<StreakResult> {
   const { data, error } = await supabase.rpc("process_streak_on_workout", {
     p_user_id: userId,
@@ -141,7 +103,7 @@ export async function processStreakOnWorkout(userId: string): Promise<StreakResu
   return data as StreakResult;
 }
 
-/** Refresh shields if new month (client calls this on app open) */
+/** Refresh shields if new month */
 export async function refreshShieldsIfNeeded(userId: string): Promise<void> {
   await supabase.rpc("check_and_refresh_shields", { p_user_id: userId });
 }
@@ -167,18 +129,18 @@ export async function fetchShieldLog(userId: string): Promise<ShieldLogEntry[]> 
   return (data ?? []) as ShieldLogEntry[];
 }
 
-/** Fetch workout dates for the calendar (last 60 days) */
+/** Fetch workout dates for the IST calendar (last 60 days) */
 export async function fetchWorkoutDates(userId: string): Promise<Set<string>> {
-  const since = new Date();
-  since.setDate(since.getDate() - 60);
+  const since = new Date(Date.now() - 60 * 86_400_000).toISOString();
   const { data } = await supabase
     .from("workout_logs")
     .select("created_at")
     .eq("user_id", userId)
-    .gte("created_at", since.toISOString());
+    .gte("created_at", since);
   const set = new Set<string>();
   for (const row of data ?? []) {
-    set.add((row.created_at as string).slice(0, 10));
+    // Convert UTC timestamp → IST date string
+    set.add(isoToISTDateStr(row.created_at as string));
   }
   return set;
 }
