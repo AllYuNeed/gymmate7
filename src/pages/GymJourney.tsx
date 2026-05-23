@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { todayIST, fmtMonthYearIST } from "@/lib/ist";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -42,7 +43,7 @@ function formatDuration(startIso: string, endIso?: string | null): string {
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  return fmtMonthYearIST(iso);
 }
 
 /* ─────────────── Sub-components ─────────────── */
@@ -222,7 +223,7 @@ function GymModal({ mode, existing, onClose, onSaved, userId, currentGymXp, curr
   const [location, setLocation] = useState(mode === "edit" ? (existing?.gym_location ?? "") : "");
   const [description, setDescription] = useState(mode === "edit" ? (existing?.gym_description ?? "") : "");
   const [joinDate, setJoinDate] = useState(
-    mode === "edit" ? (existing?.join_date ?? new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10)
+    mode === "edit" ? (existing?.join_date ?? todayIST()) : todayIST()
   );
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(existing?.gym_logo_url ?? null);
@@ -284,7 +285,7 @@ function GymModal({ mode, existing, onClose, onSaved, userId, currentGymXp, curr
       if (current) {
         await supabase.from("gym_history").update({
           is_current: false,
-          leave_date: new Date().toISOString().slice(0, 10),
+          leave_date: todayIST(),
           xp_earned: currentGymXp,
           workouts_completed: currentGymWorkouts,
         }).eq("id", current.id);
@@ -313,7 +314,7 @@ function GymModal({ mode, existing, onClose, onSaved, userId, currentGymXp, curr
       if (existing) {
         await supabase.from("gym_history").update({
           is_current: false,
-          leave_date: new Date().toISOString().slice(0, 10),
+          leave_date: todayIST(),
           xp_earned: currentGymXp,
           workouts_completed: currentGymWorkouts,
         }).eq("id", existing.id);
@@ -325,7 +326,7 @@ function GymModal({ mode, existing, onClose, onSaved, userId, currentGymXp, curr
         gym_location: location.trim() || null,
         gym_description: description.trim() || null,
         gym_logo_url: logoUrl,
-        join_date: new Date().toISOString().slice(0, 10),
+        join_date: todayIST(),
         is_current: true,
         xp_earned: 0,
         workouts_completed: 0,
