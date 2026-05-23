@@ -2,9 +2,10 @@ import { useEffect, useState, useCallback } from "react";
 import {
   fetchStreakState, fetchShieldLog, fetchWorkoutDates,
   buildCalendarGrid, formatStreak, streakTier, STREAK_TIER_META,
-  daysUntilMonthReset, xpBonusLabel, isSundayStr,
-  type StreakState, type ShieldLogEntry, type CalendarDay,
+  daysUntilMonthReset, xpBonusLabel,
+  type StreakState, type ShieldLogEntry,
 } from "@/lib/streak";
+import { type CalendarDay, fmtDateIST, isTodaySundayIST } from "@/lib/ist";
 import { refreshShieldsIfNeeded } from "@/lib/streak";
 
 // ── Flame animation component ──────────────────────────────────
@@ -87,8 +88,7 @@ function ShieldBar({ count, resetDays }: { count: number; resetDays: number }) {
 
 // ── Sunday protection banner ───────────────────────────────────
 function SundayBanner({ enabled }: { enabled: boolean }) {
-  const today = new Date();
-  const isTodaySunday = today.getDay() === 0;
+  const isTodaySunday = isTodaySundayIST();
 
   if (!isTodaySunday) return null;
 
@@ -202,7 +202,7 @@ function ShieldHistory({ log }: { log: ShieldLogEntry[] }) {
                   {entry.is_sunday ? "Sunday Protection" : "Shield Used"}
                 </p>
                 <p className="font-display text-[9px] text-muted-foreground">
-                  {new Date(entry.used_date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  {fmtDateIST(entry.used_date)}
                 </p>
               </div>
             </div>
