@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { EXERCISES, MUSCLE_BY_ID } from "@/data/muscles";
 import { setXp } from "@/lib/xp";
 import { addWeeklyXp } from "@/lib/social";
+import { processStreakOnWorkout } from "@/lib/streak";
 import { toast } from "sonner";
 
 interface RecentLog {
@@ -107,6 +108,23 @@ const Forge = () => {
           last_workout_date: todayStr,
         }).eq("user_id", user.id);
         if (level > (hero.level ?? 1)) toast.success(`✦ LEVEL UP! Lv ${level}`, { duration: 4000 });
+
+        // ── Streak system ────────────────────────────────────
+        const streakResult = await processStreakOnWorkout(user.id);
+        if (streakResult.action === "extended") {
+          toast.success(`🔥 ${streakResult.streak} day streak!`, { duration: 3000 });
+        } else if (streakResult.action === "sunday_protected") {
+          toast.success("☀️ Sunday recovery protected your streak!", { duration: 3000 });
+        } else if (streakResult.action === "shield_used") {
+          toast.success(
+            `🛡 Streak Shield activated! ${streakResult.shields_remaining ?? 0} shields remaining`,
+            { duration: 4000 }
+          );
+        } else if (streakResult.action === "broken") {
+          toast.error("💔 Streak broken — start fresh!", { duration: 4000 });
+        } else if (streakResult.action === "started") {
+          toast.success("🔥 Streak started! Keep it going!", { duration: 3000 });
+        }
 
         // Add XP to all guilds the user belongs to + damage guild bosses
         const { data: memberships } = await supabase
