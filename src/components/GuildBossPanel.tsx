@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { monthKeyIST } from "@/lib/ist";
 import { toast } from "sonner";
 
 interface GuildBoss {
@@ -42,7 +43,7 @@ export function GuildBossPanel({
   const [damage, setDamage] = useState<DamageEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const monthKey = new Date().toISOString().slice(0, 7);
+  const monthKey = monthKeyIST();
 
   useEffect(() => {
     void load();
