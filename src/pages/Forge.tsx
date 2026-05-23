@@ -9,6 +9,7 @@ import { EXERCISES, MUSCLE_BY_ID } from "@/data/muscles";
 import { setXp } from "@/lib/xp";
 import { addWeeklyXp } from "@/lib/social";
 import { processStreakOnWorkout } from "@/lib/streak";
+import { todayIST, monthKeyIST } from "@/lib/ist";
 import { toast } from "sonner";
 
 interface RecentLog {
@@ -91,12 +92,12 @@ const Forge = () => {
         const weekly = addWeeklyXp(hero.weekly_xp ?? 0, hero.weekly_xp_reset_at ?? new Date().toISOString(), totalXp);
         // Monthly bucket
         const now = new Date();
-        const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+        const monthStart = new Date(monthKeyIST() + "-01T00:00:00+05:30");
         const lastMonthlyReset = hero.monthly_xp_reset_at ? new Date(hero.monthly_xp_reset_at) : monthStart;
         const monthlyStale = lastMonthlyReset < monthStart;
         const newMonthlyXp = (monthlyStale ? 0 : (hero.monthly_xp ?? 0)) + totalXp;
         const newMonthlyResetAt = monthlyStale ? monthStart.toISOString() : lastMonthlyReset.toISOString();
-        const todayStr = now.toISOString().slice(0, 10);
+        const todayStr = todayIST();
         await supabase.from("heroes").update({
           xp: newXp,
           level,
@@ -193,7 +194,7 @@ const Forge = () => {
       }
 
       // Quest progress: any "log_workout" type
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayIST();
       const { data: quests } = await supabase
         .from("daily_quests")
         .select("id, type, target, progress, completed, xp_reward, coin_reward")
@@ -214,7 +215,7 @@ const Forge = () => {
       }
 
       // Boss damage
-      const monthKey = new Date().toISOString().slice(0, 7);
+      const monthKey = monthKeyIST();
       const { data: boss } = await supabase
         .from("boss_battles")
         .select("id, current_hp, status")
