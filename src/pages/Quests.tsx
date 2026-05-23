@@ -25,7 +25,8 @@ const QUEST_POOL: Omit<Quest, "id" | "progress" | "completed">[] = [
   { title: "Whisper of the Mountain", description: "Move your body — even one set counts.", type: "log_sets",    target: 5,  xp_reward: 50,  coin_reward: 10 },
 ];
 
-const todayKey = () => new Date().toISOString().slice(0, 10);
+import { todayIST } from "@/lib/ist";
+const todayKey = () => todayIST();
 
 const Quests = () => {
   const navigate = useNavigate();
