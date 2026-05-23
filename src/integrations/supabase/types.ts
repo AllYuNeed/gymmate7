@@ -300,6 +300,36 @@ export type Database = {
         }
         Relationships: []
       }
+      streak_shield_log: {
+        Row: {
+          id: string
+          user_id: string
+          used_date: string
+          auto_triggered: boolean
+          streak_preserved: number
+          is_sunday: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          used_date: string
+          auto_triggered?: boolean
+          streak_preserved: number
+          is_sunday?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          used_date?: string
+          auto_triggered?: boolean
+          streak_preserved?: number
+          is_sunday?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       gym_history: {
         Row: {
           id: string
@@ -613,6 +643,10 @@ export type Database = {
           sleep_quality: string
           streak_days: number
           streak_freezes: number
+          streak_shield_count: number
+          shield_reset_date: string
+          sunday_protection: boolean
+          longest_streak: number
           stress_level: string
           units: string
           updated_at: string
@@ -649,6 +683,10 @@ export type Database = {
           sleep_quality: string
           streak_days?: number
           streak_freezes?: number
+          streak_shield_count?: number
+          shield_reset_date?: string
+          sunday_protection?: boolean
+          longest_streak?: number
           stress_level: string
           units?: string
           updated_at?: string
@@ -685,6 +723,10 @@ export type Database = {
           sleep_quality?: string
           streak_days?: number
           streak_freezes?: number
+          streak_shield_count?: number
+          shield_reset_date?: string
+          sunday_protection?: boolean
+          longest_streak?: number
           stress_level?: string
           units?: string
           updated_at?: string
