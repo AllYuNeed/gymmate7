@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { monthKeyIST } from "@/lib/ist";
 
 interface Boss {
   id: string;
@@ -29,7 +30,7 @@ const BossPage = () => {
   const [boss, setBoss] = useState<Boss | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const monthKey = new Date().toISOString().slice(0, 7);
+  const monthKey = monthKeyIST();
 
   useEffect(() => {
     if (authLoading) return;
