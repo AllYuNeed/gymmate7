@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Image as ImageIcon, Send, Sparkles, CheckCheck, Check } from "lucide-react";
 import { sendMessage, markConversationRead, setTyping, clearTyping, type AchievementCard } from "@/lib/chat";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { fmtTimeIST } from "@/lib/ist";
 
 interface Msg {
   id: string;
@@ -249,7 +249,7 @@ const MessageThread = () => {
                 )}
                 {m.content && <p className="whitespace-pre-wrap text-sm">{m.content}</p>}
                 <div className={`mt-1 flex items-center gap-1 text-[10px] ${mine ? "opacity-80" : "opacity-60"}`}>
-                  <span>{format(new Date(m.created_at), "HH:mm")}</span>
+                  <span>{fmtTimeIST(m.created_at)}</span>
                   {mine && (m.read_at ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3" />)}
                 </div>
               </div>
