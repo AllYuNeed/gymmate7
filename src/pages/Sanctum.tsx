@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Sigil } from "@/components/Sigil";
 import { HeroAvatar } from "@/components/HeroAvatar";
 import { AvatarPicker } from "@/components/AvatarPicker";
+import { StreakDashboard } from "@/components/StreakDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { HERO_CLASSES, type ClassId } from "@/data/classes";
@@ -213,11 +214,17 @@ const Sanctum = () => {
         </section>
 
         {/* Stats */}
-        <section className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <section className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-2">
           <StatCard glyph="✪" label="Coins" value={hero.coins.toLocaleString()} />
-          <StatCard glyph="✦" label="Streak" value={`${hero.streak_days} days`} />
-          <StatCard glyph="❅" label="Freezes" value={`${hero.streak_freezes} / 2`} />
           <StatCard glyph="⚔" label="Level" value={`${hero.level}`} />
+        </section>
+
+        {/* Streak Dashboard */}
+        <section className="mt-6">
+          <div className="mb-3 flex items-center gap-2">
+            <p className="font-display text-xs uppercase tracking-[0.3em] text-secondary">◆ Streak System ◆</p>
+          </div>
+          {user && <StreakDashboard userId={user.id} initialStreak={hero.streak_days} />}
         </section>
 
         {/* Gym Journey Card */}
