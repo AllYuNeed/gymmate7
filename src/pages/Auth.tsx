@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Browser } from "@capacitor/browser";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
+import { getAuthRedirectTo, isNativeRuntime } from "@/lib/authRedirect";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -11,6 +13,27 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const isNative = isNativeRuntime();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: getAuthRedirectTo(isNative),
+          skipBrowserRedirect: isNative,
+        },
+      });
+
+      if (error) throw error;
+      if (isNative && data.url) await Browser.open({ url: data.url });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,22 +134,8 @@ const Auth = () => {
             variant="rune"
             size="lg"
             className="w-full"
-            onClick={async () => {
-              setLoading(true);
-              try {
-               const { error } = await supabase.auth.signInWithOAuth({
-  provider: "google",
-  options: {
-    redirectTo: `https://mortalgyms.com/auth/callback`,
-  },
-});
-if (error) throw error;
-              } catch (err) {
-                toast.error(err instanceof Error ? err.message : "Google sign-in failed");
-              } finally {
-                setLoading(false);
-              }
-            }}
+            onClick={handleGoogleSignIn}
+            disabled={loading}
           >
             <span className="text-base">◉</span> Continue with Google
           </Button>
