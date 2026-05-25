@@ -1,31 +1,27 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getPostAuthRedirectPath } from "@/lib/authSession";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const routeSignedInUser = async (userId: string) => {
+      const destination = await getPostAuthRedirectPath(userId);
+      navigate(destination, { replace: true });
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
-        const { data: hero } = await supabase
-          .from("heroes")
-          .select("id")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-        navigate(hero ? "/sanctum" : "/awaken");
+        await routeSignedInUser(session.user.id);
       }
     });
 
     // Also handle the case where session is already set on mount
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        const { data: hero } = await supabase
-          .from("heroes")
-          .select("id")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-        navigate(hero ? "/sanctum" : "/awaken");
+        await routeSignedInUser(session.user.id);
       }
     });
 
