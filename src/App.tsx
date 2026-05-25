@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/AppShell";
+import { NativeAuthRedirectHandler } from "@/components/NativeAuthRedirectHandler";
 import Landing from "./pages/Landing.tsx";
 import Auth from "./pages/Auth.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
@@ -39,6 +40,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <NativeAuthRedirectHandler />
         <AppShell>
           <Routes>
             <Route path="/" element={<Landing />} />
