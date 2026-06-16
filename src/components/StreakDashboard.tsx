@@ -87,10 +87,8 @@ function ShieldBar({ count, resetDays }: { count: number; resetDays: number }) {
 }
 
 // ── Sunday protection banner ───────────────────────────────────
-function SundayBanner({ enabled }: { enabled: boolean }) {
-  const isTodaySunday = isTodaySundayIST();
-
-  if (!isTodaySunday) return null;
+function SundayBanner({ active }: { active: boolean }) {
+  if (!active) return null;
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 animate-pulse-slow">
@@ -121,12 +119,15 @@ function StreakCalendar({
   const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
   const getDayStyle = (day: CalendarDay) => {
+    const protectedSunday = sundayDates.has(day.iso);
+
     if (day.isFuture) return "bg-surface-deep/30 text-muted-foreground/20 border-transparent";
     if (!day.isCurrentMonth) return "bg-transparent text-muted-foreground/20 border-transparent";
     if (workoutDates.has(day.iso)) return "bg-primary/80 text-black font-bold border-primary shadow-[0_0_8px_hsl(45_90%_55%/0.5)]";
-    if (day.isSunday) return "bg-amber-400/20 text-amber-400 border-amber-400/40";
+    if (protectedSunday) return "bg-amber-400/20 text-amber-400 border-amber-400/40";
     if (shieldDates.has(day.iso)) return "bg-blue-500/20 text-blue-400 border-blue-400/40";
     if (day.isToday) return "bg-surface-raised border-primary/60 text-primary";
+    if (day.isSunday) return "bg-surface-deep/60 text-amber-400/60 border-amber-400/20";
     return "bg-surface-deep/60 text-muted-foreground/60 border-border/20";
   };
 
@@ -147,16 +148,21 @@ function StreakCalendar({
 
       {/* Day cells */}
       <div className="grid grid-cols-7 gap-1">
-        {grid.map((day) => (
+        {grid.map((day) => {
+          const protectedSunday = sundayDates.has(day.iso);
+
+          return (
           <div
             key={day.iso}
             title={
-              day.isSunday && !day.isFuture
-                ? "☀️ Sunday — streak protected"
+              protectedSunday
+                ? "☀️ Sunday protection used"
                 : shieldDates.has(day.iso)
                 ? "🛡 Shield used — streak saved"
                 : workoutDates.has(day.iso)
                 ? "✦ Workout logged"
+                : day.isSunday && !day.isFuture
+                ? "☀️ Sunday rest day"
                 : day.isToday
                 ? "Today"
                 : ""
@@ -164,20 +170,21 @@ function StreakCalendar({
             className={`relative flex h-8 w-full items-center justify-center rounded-md border text-[10px] transition-all ${getDayStyle(day)}`}
           >
             <span>{day.dayOfMonth}</span>
-            {day.isSunday && !day.isFuture && day.isCurrentMonth && !workoutDates.has(day.iso) && (
+            {protectedSunday && day.isCurrentMonth && !workoutDates.has(day.iso) && (
               <span className="absolute -top-0.5 -right-0.5 text-[7px]">☀</span>
             )}
             {shieldDates.has(day.iso) && !workoutDates.has(day.iso) && (
               <span className="absolute -top-0.5 -right-0.5 text-[7px]">🛡</span>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Legend */}
       <div className="mt-3 flex flex-wrap gap-3 text-[9px] font-display uppercase tracking-widest text-muted-foreground">
         <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-primary/80 inline-block" />Workout</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-amber-400/40 inline-block" />Sunday</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-amber-400/40 inline-block" />Protected Sunday</span>
         <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-500/30 inline-block" />Shield</span>
       </div>
     </div>
@@ -303,11 +310,13 @@ export function StreakDashboard({ userId, initialStreak = 0 }: StreakDashboardPr
   const shieldDateSet = new Set(shieldLog.filter((l) => !l.is_sunday).map((l) => l.used_date));
   const sundayDateSet = new Set(shieldLog.filter((l) => l.is_sunday).map((l) => l.used_date));
   const resetDays = daysUntilMonthReset();
+  const isSundayToday = isTodaySundayIST();
+  const sundayProtectionActiveToday = state.sunday_protection && isSundayToday;
 
   return (
     <div className="space-y-4">
       {/* Sunday banner (only shows on Sundays) */}
-      <SundayBanner enabled={state.sunday_protection} />
+      <SundayBanner active={sundayProtectionActiveToday} />
 
       {/* Main streak counter + stats row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -333,19 +342,21 @@ export function StreakDashboard({ userId, initialStreak = 0 }: StreakDashboardPr
 
         {/* Sunday protection */}
         <div className={`flex flex-col items-center justify-center rounded-2xl border p-4 text-center transition-all ${
-          state.sunday_protection
+          sundayProtectionActiveToday
             ? "border-amber-400/40 bg-amber-400/10"
+            : state.sunday_protection
+            ? "border-amber-400/20 bg-surface-deep"
             : "border-border/60 bg-surface-deep opacity-50"
         }`}>
           <span className="text-2xl">☀️</span>
           <p className="mt-1 font-display text-sm font-bold text-amber-400">
-            {state.sunday_protection ? "Active" : "Off"}
+            {sundayProtectionActiveToday ? "Active Today" : state.sunday_protection ? "Ready" : "Off"}
           </p>
           <p className="font-display text-[9px] uppercase tracking-widest text-muted-foreground">
             Sunday Protection
           </p>
           <p className="font-display text-[8px] text-muted-foreground/60 mt-0.5">
-            Rest day safe
+            {sundayProtectionActiveToday ? "Rest day safe" : state.sunday_protection ? "Only Sundays" : "Disabled"}
           </p>
         </div>
       </div>
