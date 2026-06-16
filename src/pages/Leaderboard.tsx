@@ -69,10 +69,6 @@ const Leaderboard = () => {
     })();
   }, [mode, user, myCountry]);
 
-  const myRow = rows.findIndex((r) => r.id && user && rows.find((x) => x.id === r.id));
-  // Find current user's index in current ranking
-  const myRankIndex = rows.findIndex((r) => r.username && user && (r as any).id === (user as any).id);
-
   return (
     <main className="relative mx-auto max-w-4xl px-6 py-12">
       <header>

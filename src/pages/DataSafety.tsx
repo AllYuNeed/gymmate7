@@ -72,10 +72,10 @@ const DataSafety = () => (
         <div className="panel p-6">
           <h2 className="font-display text-lg uppercase tracking-widest text-primary">Your Controls</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-foreground/90">
-            <li>Request data export or deletion via <a className="text-primary underline" href="mailto:mortalgyms@gmail.com">mortalgyms@gmail.com</a>.</li>
+            <li>Request data deletion from <Link className="text-primary underline" to="/deleteuserdata">Delete User Data</Link> or via <a className="text-primary underline" href="mailto:mortalgyms@gmail.com">mortalgyms@gmail.com</a>.</li>
             <li>Disable push notifications anytime from the Sanctum.</li>
             <li>Choose a generic preset avatar to avoid uploading a photo.</li>
-            <li>Block or unfriend users to stop receiving their messages.</li>
+            <li>Report users from chat or guild screens when content is abusive, spammy, or unsafe.</li>
           </ul>
         </div>
       </section>
@@ -97,6 +97,8 @@ const DataSafety = () => (
         <span className="mx-3">·</span>
         <Link to="/terms" className="text-primary hover:underline">Terms</Link>
         <span className="mx-3">·</span>
+        <Link to="/deleteuserdata" className="text-primary hover:underline">Delete User Data</Link>
+        <span className="mx-3">.</span>
         <Link to="/" className="text-primary hover:underline">Home</Link>
       </footer>
     </article>

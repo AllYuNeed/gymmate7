@@ -46,14 +46,14 @@ const Privacy = () => (
 
         <h2 className="font-display text-2xl text-primary">4. Data Storage & Security</h2>
         <p>
-          Data is stored on encrypted servers (Lovable Cloud / Supabase, hosted in the EU/US).
+          Data is transmitted over HTTPS/TLS and stored on encrypted servers (Vercel / Supabase).
           Access is protected by row-level security so users can only access their own private data.
         </p>
 
         <h2 className="font-display text-2xl text-primary">5. Your Rights</h2>
         <ul className="list-disc space-y-2 pl-6">
           <li>Access, correct, or export your data.</li>
-          <li>Delete your account and all associated data at any time by contacting us.</li>
+          <li>Delete your account and all associated data from <Link className="text-primary underline" to="/deleteuserdata">Delete User Data</Link> or by contacting us.</li>
           <li>Disable push notifications from your device or in the Sanctum.</li>
           <li>Revoke Google Sign-In access from your Google account settings.</li>
         </ul>
@@ -76,6 +76,8 @@ const Privacy = () => (
       <footer className="mt-16 text-center text-xs text-muted-foreground">
         <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link>
         <span className="mx-3">·</span>
+        <Link to="/deleteuserdata" className="text-primary hover:underline">Delete User Data</Link>
+        <span className="mx-3">.</span>
         <Link to="/" className="text-primary hover:underline">Home</Link>
       </footer>
     </article>

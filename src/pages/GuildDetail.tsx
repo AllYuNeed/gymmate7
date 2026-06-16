@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { GuildBossPanel } from "@/components/GuildBossPanel";
 import { HeroAvatar } from "@/components/HeroAvatar";
+import { ReportUserDialog } from "@/components/ReportUserDialog";
 
 interface Guild {
   id: string;
@@ -50,6 +51,7 @@ const errMsg = (e: unknown): string => {
 const ROLE_BADGE: Record<string, { label: string; symbol: string; className: string }> = {
   leader:  { label: "Leader", symbol: "♛", className: "text-primary" },
   admin:   { label: "Admin",  symbol: "⚡", className: "text-yellow-400" },
+  co_leader: { label: "Co Leader", symbol: "Co", className: "text-sky-300" },
   member:  { label: "Member", symbol: "",   className: "text-muted-foreground" },
 };
 
@@ -114,7 +116,7 @@ const GuildDetail = () => {
 
     // Sort: leader first, then admins, then members
     enriched.sort((a, b) => {
-      const order = { leader: 0, admin: 1, member: 2 };
+      const order = { leader: 0, co_leader: 1, admin: 2, member: 3 };
       return (order[a.role as keyof typeof order] ?? 2) - (order[b.role as keyof typeof order] ?? 2);
     });
 
@@ -209,6 +211,10 @@ const GuildDetail = () => {
       toast.error("Admins can only remove regular members.");
       return;
     }
+    if (myRole === "co_leader" && (m.role === "leader" || m.role === "co_leader")) {
+      toast.error("Co leaders cannot remove leaders or other co leaders.");
+      return;
+    }
     setActionLoading(m.id);
     try {
       const { error } = await supabase.from("guild_members").delete().eq("id", m.id);
@@ -221,7 +227,8 @@ const GuildDetail = () => {
 
   // ✅ NEW: Promote to admin or demote back to member
   const toggleAdmin = async (m: Member) => {
-    if (!id || myRole !== "leader") return;
+    if (!id || (myRole !== "leader" && myRole !== "co_leader")) return;
+    if (m.role === "leader" || m.role === "co_leader") return;
     const newRole = m.role === "admin" ? "member" : "admin";
     setActionLoading(m.id);
     try {
@@ -236,30 +243,32 @@ const GuildDetail = () => {
   };
 
   // ✅ NEW: Transfer ownership to another member
+  const toggleCoLeader = async (m: Member) => {
+    if (!id || myRole !== "leader") return;
+    if (m.role === "leader") return;
+    const newRole = m.role === "co_leader" ? "member" : "co_leader";
+    setActionLoading(m.id);
+    try {
+      const { error } = await supabase.from("guild_members").update({ role: newRole }).eq("id", m.id);
+      if (error) throw error;
+      setMembers((prev) => prev.map((x) => x.id === m.id ? { ...x, role: newRole } : x));
+      toast.success(newRole === "co_leader"
+        ? `${m.hero_name ?? "Member"} is now a Co Leader.`
+        : `${m.hero_name ?? "Member"} returned to Member.`);
+    } catch (e) { toast.error(errMsg(e)); }
+    finally { setActionLoading(null); }
+  };
+
   const transferOwnership = async (m: Member) => {
     if (!id || !guild || myRole !== "leader" || !user) return;
     setActionLoading(m.id);
     try {
       // Update guilds table — new leader
-      const { error: gErr } = await supabase
-        .from("guilds")
-        .update({ leader_user_id: m.user_id, owner_id: m.user_id })
-        .eq("id", id);
-      if (gErr) throw gErr;
-
-      // Update guild_members roles
-      const { error: oldErr } = await supabase
-        .from("guild_members")
-        .update({ role: "member" })
-        .eq("guild_id", id)
-        .eq("user_id", user.id);
-      if (oldErr) throw oldErr;
-
-      const { error: newErr } = await supabase
-        .from("guild_members")
-        .update({ role: "leader" })
-        .eq("id", m.id);
-      if (newErr) throw newErr;
+      const { error } = await supabase.rpc("transfer_guild_ownership", {
+        p_guild_id: id,
+        p_new_leader_user_id: m.user_id,
+      });
+      if (error) throw error;
 
       toast.success(`Ownership transferred to ${m.hero_name ?? "new leader"} ♛`);
       setConfirmTransfer(null);
@@ -270,8 +279,8 @@ const GuildDetail = () => {
 
   // ─── Derived helpers ────────────────────────────────────────────────────────
   const isLeader = guild?.leader_user_id === user?.id || myRole === "leader";
+  const isCoLeader = myRole === "co_leader";
   const isAdmin  = myRole === "admin";
-  const canManage = isLeader || isAdmin;
 
   if (loading || !guild) {
     return <main className="px-6 py-12 text-center text-sm text-muted-foreground">Summoning...</main>;
@@ -318,7 +327,7 @@ const GuildDetail = () => {
 
       <GuildBossPanel
         guildId={guild.id}
-        isLeader={isLeader}
+        isLeader={isLeader || isCoLeader}
         isMember={isMember}
         memberCount={members.length}
       />
@@ -333,8 +342,17 @@ const GuildDetail = () => {
               const badge = ROLE_BADGE[m.role] ?? ROLE_BADGE.member;
               const isMe = m.user_id === user?.id;
               const isThisLeader = m.role === "leader";
-              const canKick = canManage && !isMe && !isThisLeader && !(isAdmin && m.role === "admin");
-              const canToggleAdmin = isLeader && !isMe && !isThisLeader;
+              const isThisCoLeader = m.role === "co_leader";
+              const canKick = !isMe && (
+                (isLeader && !isThisLeader) ||
+                (isCoLeader && !isThisLeader && !isThisCoLeader) ||
+                (isAdmin && m.role === "member")
+              );
+              const canToggleCoLeader = isLeader && !isMe && !isThisLeader;
+              const canToggleAdmin = !isMe && (
+                (isLeader && !isThisLeader && !isThisCoLeader) ||
+                (isCoLeader && (m.role === "member" || m.role === "admin"))
+              );
 
               return (
                 <div key={m.id} className="p-3">
@@ -359,8 +377,26 @@ const GuildDetail = () => {
                   </div>
 
                   {/* ✅ NEW: Management actions row */}
-                  {canManage && !isMe && !isThisLeader && (
+                  {!isMe && (
                     <div className="mt-2 ml-9 flex flex-wrap gap-2">
+                      <ReportUserDialog
+                        reporterId={user?.id}
+                        reportedUserId={m.user_id}
+                        reportedName={m.hero_name}
+                        context="guild_member"
+                        contextId={guild.id}
+                      />
+
+                      {canToggleCoLeader && (
+                        <button
+                          onClick={() => toggleCoLeader(m)}
+                          disabled={actionLoading === m.id}
+                          className="rounded border border-border px-2 py-0.5 font-display text-[10px] uppercase tracking-widest text-muted-foreground hover:border-sky-300 hover:text-sky-300 disabled:opacity-40"
+                        >
+                          {actionLoading === m.id ? "..." : m.role === "co_leader" ? "Remove Co Leader" : "Make Co Leader"}
+                        </button>
+                      )}
+
                       {/* Promote/Demote admin — leader only */}
                       {canToggleAdmin && (
                         <button
@@ -410,6 +446,9 @@ const GuildDetail = () => {
             </div>
           ) : (
             <div className="mt-3 panel flex h-[460px] flex-col">
+              <div className="border-b border-border px-4 py-2 text-[11px] text-muted-foreground">
+                Chat is protected in transit with HTTPS/TLS and stored behind Supabase row-level security.
+              </div>
               <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
                 {messages.length === 0 && (
                   <p className="text-center text-xs text-muted-foreground">No messages yet. Break the silence.</p>
@@ -419,7 +458,19 @@ const GuildDetail = () => {
                   return (
                     <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[75%] rounded-lg px-3 py-2 ${mine ? "bg-primary/20 border border-primary/40" : "bg-surface-raised border border-border"}`}>
-                        {!mine && <p className="font-display text-[10px] uppercase tracking-widest text-secondary">{m.hero_name}</p>}
+                        {!mine && (
+                          <div className="mb-1 flex items-center justify-between gap-2">
+                            <p className="font-display text-[10px] uppercase tracking-widest text-secondary">{m.hero_name}</p>
+                            <ReportUserDialog
+                              reporterId={user?.id}
+                              reportedUserId={m.user_id}
+                              reportedName={m.hero_name}
+                              context="guild_chat"
+                              contextId={m.id}
+                              size="sm"
+                            />
+                          </div>
+                        )}
                         <p className="text-sm text-foreground break-words">{m.message}</p>
                         <p className="mt-1 text-[10px] text-muted-foreground">
                           {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}

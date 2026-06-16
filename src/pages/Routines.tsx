@@ -110,7 +110,7 @@ const Routines = () => {
     finally { setGenerating(false); }
   };
 
-  const usePreset = async (key: keyof typeof PRESETS) => {
+  const applyPreset = async (key: keyof typeof PRESETS) => {
     if (!user) return;
     setPresetLoading(key);
     try {
@@ -157,7 +157,7 @@ const Routines = () => {
           </Button>
           <div className="grid grid-cols-3 gap-2">
             {(["ppl", "upper_lower", "full_body"] as const).map((key) => (
-              <Button key={key} variant="rune" size="sm" onClick={() => usePreset(key)} disabled={presetLoading !== null || generating}>
+              <Button key={key} variant="rune" size="sm" onClick={() => applyPreset(key)} disabled={presetLoading !== null || generating}>
                 {presetLoading === key ? "..." : key === "ppl" ? "PPL 6d" : key === "upper_lower" ? "U/L 4d" : "Full 3d"}
               </Button>
             ))}

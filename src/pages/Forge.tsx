@@ -9,7 +9,7 @@ import { EXERCISES, MUSCLE_BY_ID } from "@/data/muscles";
 import { setXp } from "@/lib/xp";
 import { addWeeklyXp } from "@/lib/social";
 import { processStreakOnWorkout } from "@/lib/streak";
-import { todayIST, monthKeyIST } from "@/lib/ist";
+import { fmtDateIST, fmtTimeIST, isoToISTDateStr, todayIST, monthKeyIST } from "@/lib/ist";
 import { toast } from "sonner";
 
 interface RecentLog {
@@ -311,6 +311,9 @@ const Forge = () => {
             <div key={r.id} className="panel flex items-center justify-between p-4">
               <div>
                 <p className="font-display text-sm uppercase tracking-wider text-foreground">{r.exercise}</p>
+                <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground/80">
+                  {fmtDateIST(isoToISTDateStr(r.created_at), { month: "short", day: "numeric", year: "numeric" })} at {fmtTimeIST(r.created_at)} IST
+                </p>
                 <p className="text-xs text-muted-foreground">{r.sets} × {r.reps} @ {r.weight_kg} kg</p>
               </div>
               <div className="font-display text-lg text-primary">+{r.xp_earned}</div>

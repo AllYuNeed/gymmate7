@@ -8,6 +8,7 @@ import { ArrowLeft, Image as ImageIcon, Send, Sparkles, CheckCheck, Check } from
 import { sendMessage, markConversationRead, setTyping, clearTyping, type AchievementCard } from "@/lib/chat";
 import { toast } from "sonner";
 import { fmtTimeIST } from "@/lib/ist";
+import { ReportUserDialog } from "@/components/ReportUserDialog";
 
 interface Msg {
   id: string;
@@ -218,11 +219,22 @@ const MessageThread = () => {
               <p className="truncate font-display text-foreground">{other.hero_name}</p>
               <p className="text-xs text-muted-foreground">Lv {other.level} {other.class}</p>
             </div>
+            <ReportUserDialog
+              reporterId={user?.id}
+              reportedUserId={other.user_id}
+              reportedName={other.hero_name}
+              context="direct_message"
+              contextId={id}
+              size="icon"
+            />
           </>
         )}
       </div>
 
       {/* Messages */}
+      <div className="mb-3 rounded-md border border-border bg-surface-raised/50 px-3 py-2 text-[11px] text-muted-foreground">
+        Messages are protected in transit with HTTPS/TLS and stored behind Supabase row-level security.
+      </div>
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto pr-1">
         {messages.map((m) => {
           const mine = m.sender_id === user?.id;
