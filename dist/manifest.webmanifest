@@ -1,0 +1,17 @@
+{
+  "name": "Mortal Gyms - Fitness Evolution",
+  "short_name": "Mortal Gyms",
+  "description": "Train. Compete. Ascend. The competitive fitness RPG for XP, guilds, streaks, bosses, and workout leaderboards.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0e1f",
+  "theme_color": "#0a0e1f",
+  "categories": ["health", "fitness", "lifestyle", "games"],
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
