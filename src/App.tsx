@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/AppShell";
 import { NativeAuthRedirectHandler } from "@/components/NativeAuthRedirectHandler";
+import { Analytics } from "@/components/Analytics";
 import Landing from "./pages/Landing.tsx";
 import Auth from "./pages/Auth.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
@@ -29,6 +30,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 import DataSafety from "./pages/DataSafety.tsx";
+import DeleteUserData from "./pages/DeleteUserData.tsx";
 import GymJourney from "./pages/GymJourney.tsx";
 import ExerciseLibrary from "./pages/ExerciseLibrary.tsx";
 
@@ -41,6 +43,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <NativeAuthRedirectHandler />
+        <Analytics />
         <AppShell>
           <Routes>
             <Route path="/" element={<Landing />} />
@@ -66,6 +69,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/data-safety" element={<DataSafety />} />
+            <Route path="/deleteuserdata" element={<DeleteUserData />} />
             <Route path="/gym-journey" element={<GymJourney />} />
             <Route path="/exercises" element={<ExerciseLibrary />} />
             <Route path="*" element={<NotFound />} />
