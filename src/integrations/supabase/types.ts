@@ -885,6 +885,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_reports: {
+        Row: {
+          id: string
+          reporter_id: string
+          reported_user_id: string
+          reason: string
+          details: string | null
+          context: string
+          context_id: string | null
+          status: string
+          created_at: string
+          reviewed_at: string | null
+          resolved_at: string | null
+        }
+        Insert: {
+          id?: string
+          reporter_id: string
+          reported_user_id: string
+          reason: string
+          details?: string | null
+          context: string
+          context_id?: string | null
+          status?: string
+          created_at?: string
+          reviewed_at?: string | null
+          resolved_at?: string | null
+        }
+        Update: {
+          id?: string
+          reporter_id?: string
+          reported_user_id?: string
+          reason?: string
+          details?: string | null
+          context?: string
+          context_id?: string | null
+          status?: string
+          created_at?: string
+          reviewed_at?: string | null
+          resolved_at?: string | null
+        }
+        Relationships: []
+      }
       typing_indicators: {
         Row: {
           conversation_id: string
@@ -1002,6 +1044,27 @@ export type Database = {
         Args: { _plan_id: string; _user_id: string }
         Returns: boolean
       }
+      check_and_refresh_shields: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      can_manage_guild_member: {
+        Args: {
+          _actor_user_id: string
+          _guild_id: string
+          _target_user_id: string
+          _target_role: string
+        }
+        Returns: boolean
+      }
+      guild_actor_rank: {
+        Args: { _guild_id: string; _user_id: string }
+        Returns: number
+      }
+      guild_role_rank: {
+        Args: { _role: string }
+        Returns: number
+      }
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
@@ -1013,6 +1076,18 @@ export type Database = {
       is_guild_member: {
         Args: { _guild_id: string; _user_id: string }
         Returns: boolean
+      }
+      is_guild_manager: {
+        Args: { _guild_id: string; _user_id: string }
+        Returns: boolean
+      }
+      process_streak_on_workout: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      transfer_guild_ownership: {
+        Args: { p_guild_id: string; p_new_leader_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
