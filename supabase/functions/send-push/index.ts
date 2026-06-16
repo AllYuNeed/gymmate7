@@ -61,9 +61,12 @@ Deno.serve(async (req) => {
           notif,
         );
         sent++;
-      } catch (e: any) {
+      } catch (e: unknown) {
         failed++;
-        if (e?.statusCode === 404 || e?.statusCode === 410) stale.push(s.id);
+        const statusCode = typeof e === "object" && e !== null && "statusCode" in e
+          ? Number((e as { statusCode: unknown }).statusCode)
+          : 0;
+        if (statusCode === 404 || statusCode === 410) stale.push(s.id);
       }
     }
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);

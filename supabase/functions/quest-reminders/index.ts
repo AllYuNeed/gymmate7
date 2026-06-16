@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     .select("user_id")
     .eq("quest_date", today)
     .eq("completed", false);
-  const questUsers = Array.from(new Set((quests ?? []).map((q: any) => q.user_id)));
+  const questUsers = Array.from(new Set((quests ?? []).map((q: { user_id: string }) => q.user_id)));
 
   // Streak warning: users whose last_workout_date is older than today with streak > 0
   const { data: streakRisk } = await supabase
@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     .select("user_id")
     .gt("streak_days", 0)
     .or(`last_workout_date.lt.${today},last_workout_date.is.null`);
-  const streakUsers = (streakRisk ?? []).map((h: any) => h.user_id);
+  const streakUsers = (streakRisk ?? []).map((h: { user_id: string }) => h.user_id);
 
   const sendUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-push`;
   const headers = {
