@@ -19,7 +19,7 @@ export const archetypeIdToUrl  = (id: string) => `${ARCHETYPE_PREFIX}${id}`;
 export const isArchetypeAvatar = (url: string | null | undefined) =>
   !!url && url.startsWith(ARCHETYPE_PREFIX);
 
-type Tab = "archetypes" | "portraits" | "upload";
+type Tab = "portraits" | "upload";
 
 /* ── SVG Avatar Card ─────────────────────────────────────── */
 function AvatarSvgCard({ avatar, size = 72, locked, selected, onClick }: {
@@ -117,7 +117,7 @@ export const AvatarPicker = ({
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy]               = useState(false);
   const [preview, setPreview]         = useState<string | null>(currentAvatarUrl);
-  const [tab, setTab]                 = useState<Tab>("archetypes");
+  const [tab, setTab]                 = useState<Tab>("portraits");
   const [filterRarity, setFilterRarity] = useState<AvatarRarity | "all">("all");
   const [filterType, setFilterType]   = useState<AvatarType | "all">("all");
   const [detailAvatar, setDetailAvatar] = useState<AvatarCharacter | null>(null);
@@ -182,7 +182,7 @@ export const AvatarPicker = ({
     if (!preview) return "Default initial";
     if (preview.startsWith(ARCHETYPE_PREFIX)) {
       const id = preview.slice(ARCHETYPE_PREFIX.length);
-      return AVATAR_CHARACTERS.find((a) => a.id === id)?.name ?? "Archetype";
+      return AVATAR_CHARACTERS.find((a) => a.id === id)?.name ?? "Hero Portrait";
     }
     if (resolveAvatarSrc(preview)) return "Z-Warrior Portrait";
     return "Custom photo";
@@ -202,7 +202,7 @@ export const AvatarPicker = ({
               Choose Your Visage
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Pick an archetype, portrait, or upload your own photo.
+              Pick a hero portrait or upload your own photo.
             </DialogDescription>
             <div className="mt-3 flex items-center gap-4">
               <HeroAvatar avatarUrl={preview} name={heroName} size={60} glow />
@@ -210,7 +210,7 @@ export const AvatarPicker = ({
                 <p className="font-display text-[10px] uppercase tracking-widest text-muted-foreground">Active Visage</p>
                 <p className="font-display text-sm font-bold text-foreground truncate">{previewLabel}</p>
                 <p className="font-display text-[10px] text-secondary">
-                  {unlockedCount} / {AVATAR_CHARACTERS.length} archetypes unlocked
+                  {unlockedCount} / {AVATAR_CHARACTERS.length} hero portraits unlocked
                 </p>
               </div>
               {preview && (
@@ -225,12 +225,12 @@ export const AvatarPicker = ({
 
           {/* Tab bar */}
           <div className="shrink-0 flex gap-0 border-b border-border/40 px-6">
-            {(["archetypes", "portraits", "upload"] as Tab[]).map((t) => (
+            {(["portraits", "upload"] as Tab[]).map((t) => (
               <button key={t} type="button" onClick={() => setTab(t)}
                 className={`pb-2 pt-2 px-4 font-display text-[10px] uppercase tracking-widest border-b-2 transition-all ${
                   tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}>
-                {t === "archetypes" ? "⚡ Archetypes" : t === "portraits" ? "🎨 Portraits" : "⬆ Upload"}
+                {t === "portraits" ? "🎨 Portraits" : "⬆ Upload"}
               </button>
             ))}
           </div>
@@ -239,7 +239,7 @@ export const AvatarPicker = ({
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
 
             {/* ── ARCHETYPES ── */}
-            {tab === "archetypes" && (
+            {tab === "portraits" && (
               <div className="space-y-4">
                 {/* Rarity filter */}
                 <div className="flex flex-wrap gap-1.5">
@@ -270,7 +270,7 @@ export const AvatarPicker = ({
 
                 {/* Grid */}
                 {filtered.length === 0 ? (
-                  <p className="py-10 text-center font-display text-sm text-muted-foreground">No archetypes match</p>
+                  <p className="py-10 text-center font-display text-sm text-muted-foreground">No portraits match</p>
                 ) : (
                   <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-5">
                     {filtered.map((a) => (
@@ -286,7 +286,7 @@ export const AvatarPicker = ({
                   </div>
                 )}
                 <p className="text-center font-display text-[9px] uppercase tracking-widest text-muted-foreground/50">
-                  🔒 Locked archetypes unlock through XP · Level · Streak
+                  🔒 Locked portraits unlock through XP · Level · Streak
                 </p>
               </div>
             )}
