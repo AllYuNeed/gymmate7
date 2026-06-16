@@ -1,16 +1,26 @@
 import { ReactNode, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const hideNav = ["/", "/auth", "/awaken", "/forgot-password", "/reset-password", "/privacy", "/terms", "/data-safety"].includes(location.pathname);
+  const reduceMotion = useReducedMotion();
+  const hideNav = ["/", "/auth", "/awaken", "/forgot-password", "/reset-password", "/privacy", "/terms", "/data-safety", "/deleteuserdata"].includes(location.pathname);
 
   return (
     <div className="relative min-h-screen pb-24">
       <div className="starfield pointer-events-none fixed inset-0" />
-      <div className="relative">{children}</div>
+      <motion.div
+        key={location.pathname}
+        className="relative"
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {children}
+      </motion.div>
       {!hideNav && <BottomNav />}
       <SiteFooter />
     </div>
@@ -27,6 +37,8 @@ function SiteFooter() {
         <a href="/terms" className="hover:text-primary">Terms</a>
         <span aria-hidden>·</span>
         <a href="/data-safety" className="hover:text-primary">Data Safety</a>
+        <span aria-hidden>.</span>
+        <a href="/deleteuserdata" className="hover:text-primary">Delete Data</a>
       </div>
     </footer>
   );
