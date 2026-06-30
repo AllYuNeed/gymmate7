@@ -5,14 +5,25 @@
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 export type Equipment =
   | "barbell" | "dumbbell" | "cable" | "machine" | "bodyweight"
-  | "kettlebell" | "resistance_band" | "pull_up_bar" | "bench" | "none";
+  | "kettlebell" | "resistance_band" | "pull_up_bar" | "bench"
+  | "ez_bar" | "medicine_ball" | "foam_roller" | "none";
 
 export type WorkoutCategory =
-  | "chest" | "back" | "shoulders" | "biceps" | "triceps" | "forearms"
+  | "chest" | "back" | "shoulders" | "rear_delts" | "front_delts" | "side_delts"
+  | "biceps" | "triceps" | "forearms"
   | "legs" | "quads" | "hamstrings" | "glutes" | "calves"
-  | "abs" | "core" | "obliques" | "traps" | "lats" | "neck"
+  | "abs" | "core" | "obliques" | "lower_back" | "hip_flexors"
+  | "traps" | "lats" | "neck"
   | "full_body" | "cardio" | "hiit" | "functional" | "mobility"
-  | "stretching" | "yoga" | "recovery" | "powerlifting" | "crossfit" | "calisthenics";
+  | "stretching" | "yoga" | "recovery" | "powerlifting" | "olympic_lifting"
+  | "crossfit" | "calisthenics";
+
+export type ExerciseType = "compound" | "isolation";
+export type WorkoutType =
+  | "strength" | "hypertrophy" | "power" | "conditioning"
+  | "mobility" | "recovery" | "skill" | "endurance";
+export type MediaStatus = "verified" | "placeholder";
+export type SortOption = "alphabetical" | "popular" | "recent" | "xp" | "favorites";
 
 export interface LibraryExercise {
   id: string;
@@ -22,18 +33,42 @@ export interface LibraryExercise {
   secondary_muscles: string[];
   difficulty: Difficulty;
   equipment: Equipment[];
+  exercise_type: ExerciseType;
+  workout_type: WorkoutType;
   gif_url: string;         // Legacy animated demo URL, kept as a fallback source.
   thumbnail_url: string;   // Static fallback image
+  image_url: string;
+  media_status: MediaStatus;
+  demo_frame_id?: string;
   instructions: string[];
+  breathing: string[];
   common_mistakes: string[];
+  safety_tips: string[];
+  beginner_modifications: string[];
+  advanced_variations: string[];
   recommended_sets: string;
   recommended_reps: string;
+  recommended_rest: string;
+  calories_estimate: number;
   xp_value: number;
+  popularity_score: number;
+  created_at: string;
+  updated_at: string;
+  aliases: string[];
   tags: string[];
 }
 
+type EnrichedField =
+  | "exercise_type" | "workout_type" | "image_url" | "media_status" | "breathing"
+  | "safety_tips" | "beginner_modifications" | "advanced_variations" | "recommended_rest"
+  | "calories_estimate" | "popularity_score" | "created_at" | "updated_at" | "aliases";
+
+type ExerciseSeed = Omit<LibraryExercise, EnrichedField> & Partial<Pick<LibraryExercise, EnrichedField>>;
+
 const FREE_EXERCISE_DB_IMAGE_ROOT =
   "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+const demoFrame = (frameId: string) => `${FREE_EXERCISE_DB_IMAGE_ROOT}${frameId}/0.jpg`;
+const DEFAULT_EXERCISE_IMAGE = demoFrame("Barbell_Bench_Press_-_Medium_Grip");
 
 const EXERCISE_DEMO_FRAME_IDS: Partial<Record<string, string>> = {
   barbell_bench_press: "Barbell_Bench_Press_-_Medium_Grip",
@@ -89,7 +124,7 @@ const EXERCISE_DEMO_FRAME_IDS: Partial<Record<string, string>> = {
 };
 
 export function getExerciseDemoFrames(exercise: LibraryExercise): string[] {
-  const frameId = EXERCISE_DEMO_FRAME_IDS[exercise.id];
+  const frameId = exercise.demo_frame_id ?? EXERCISE_DEMO_FRAME_IDS[exercise.id];
 
   if (!frameId) {
     return [exercise.gif_url];
@@ -101,11 +136,11 @@ export function getExerciseDemoFrames(exercise: LibraryExercise): string[] {
   ];
 }
 
-export const EXERCISE_LIBRARY: LibraryExercise[] = [
+const BASE_EXERCISE_LIBRARY: ExerciseSeed[] = [
   // ── CHEST ────────────────────────────────────────────────
   {
     id: "barbell_bench_press",
-    name: "Barbell Bench Press",
+    name: "Flat Barbell Chest Press",
     category: "chest",
     primary_muscle: "Chest",
     secondary_muscles: ["Triceps", "Front Delts"],
@@ -128,7 +163,8 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     recommended_sets: "4",
     recommended_reps: "6–10",
     xp_value: 120,
-    tags: ["compound", "strength", "powerlifting"],
+    tags: ["compound", "strength", "powerlifting", "barbell bench press"],
+    aliases: ["Barbell Bench Press", "Bench Press"],
   },
   {
     id: "incline_dumbbell_press",
@@ -284,7 +320,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
   },
   {
     id: "lat_pulldown",
-    name: "Lat Pulldown",
+    name: "Front Lat Pulldown",
     category: "lats",
     primary_muscle: "Lats",
     secondary_muscles: ["Biceps", "Rear Delts"],
@@ -305,7 +341,8 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     recommended_sets: "3–4",
     recommended_reps: "10–12",
     xp_value: 100,
-    tags: ["lat width", "cable", "beginner-friendly"],
+    tags: ["lat width", "cable", "beginner-friendly", "lat pulldown"],
+    aliases: ["Lat Pulldown", "Wide-Grip Lat Pulldown"],
   },
   // ── SHOULDERS ────────────────────────────────────────────
   {
@@ -335,8 +372,8 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
   },
   {
     id: "lateral_raise",
-    name: "Lateral Raise",
-    category: "shoulders",
+    name: "Side Lateral Raise",
+    category: "side_delts",
     primary_muscle: "Lateral Delts",
     secondary_muscles: ["Traps"],
     difficulty: "beginner",
@@ -356,12 +393,13 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     recommended_sets: "3–4",
     recommended_reps: "12–20",
     xp_value: 70,
-    tags: ["isolation", "shoulder width"],
+    tags: ["isolation", "shoulder width", "lateral raise"],
+    aliases: ["Lateral Raise", "Dumbbell Lateral Raise"],
   },
   {
     id: "face_pull",
     name: "Face Pull",
-    category: "shoulders",
+    category: "rear_delts",
     primary_muscle: "Rear Delts",
     secondary_muscles: ["Upper Back", "Rotator Cuff"],
     difficulty: "beginner",
@@ -485,7 +523,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
   // ── LEGS ─────────────────────────────────────────────────
   {
     id: "barbell_squat",
-    name: "Back Squat",
+    name: "Barbell Squat",
     category: "quads",
     primary_muscle: "Quads",
     secondary_muscles: ["Glutes", "Hamstrings", "Lower Back"],
@@ -506,7 +544,8 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     recommended_sets: "4–5",
     recommended_reps: "4–8",
     xp_value: 200,
-    tags: ["king lift", "compound", "powerlifting", "legs"],
+    tags: ["king lift", "compound", "powerlifting", "legs", "back squat"],
+    aliases: ["Back Squat"],
   },
   {
     id: "romanian_deadlift",
@@ -685,7 +724,7 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
   // ── TRAPS ────────────────────────────────────────────────
   {
     id: "barbell_shrug",
-    name: "Barbell Shrug",
+    name: "Barbell Shrugs",
     category: "traps",
     primary_muscle: "Traps",
     secondary_muscles: [],
@@ -705,7 +744,8 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     recommended_sets: "3–4",
     recommended_reps: "10–15",
     xp_value: 75,
-    tags: ["traps", "isolation"],
+    tags: ["traps", "isolation", "shrug"],
+    aliases: ["Barbell Shrug", "Shrugs"],
   },
   // ── CARDIO ───────────────────────────────────────────────
   {
@@ -1416,6 +1456,207 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
   },
 ];
 
+interface CompactExerciseSeed {
+  id: string;
+  name: string;
+  category: WorkoutCategory;
+  primary_muscle: string;
+  secondary_muscles?: string[];
+  difficulty?: Difficulty;
+  equipment?: Equipment[];
+  frame?: string;
+  tags?: string[];
+  sets?: string;
+  reps?: string;
+  xp?: number;
+  type?: ExerciseType;
+  workout_type?: WorkoutType;
+}
+
+const compactExercise = (seed: CompactExerciseSeed): ExerciseSeed => {
+  const frameUrl = seed.frame ? demoFrame(seed.frame) : DEFAULT_EXERCISE_IMAGE;
+  const primary = seed.primary_muscle;
+
+  return {
+    id: seed.id,
+    name: seed.name,
+    category: seed.category,
+    primary_muscle: primary,
+    secondary_muscles: seed.secondary_muscles ?? [],
+    difficulty: seed.difficulty ?? "intermediate",
+    equipment: seed.equipment ?? ["bodyweight"],
+    exercise_type: seed.type,
+    workout_type: seed.workout_type,
+    gif_url: frameUrl,
+    thumbnail_url: frameUrl,
+    demo_frame_id: seed.frame,
+    media_status: seed.frame ? "verified" : "placeholder",
+    instructions: [
+      `Set up for ${seed.name} with stable posture and the ${primary.toLowerCase()} loaded.`,
+      "Brace the core, keep joints stacked, and move through a controlled pain-free range.",
+      "Pause briefly in the hardest position, then return under control.",
+      "Stop the set when rep speed or posture breaks down.",
+    ],
+    common_mistakes: [
+      `Using momentum instead of controlled ${primary.toLowerCase()} tension.`,
+      "Skipping the setup or chasing load through uncomfortable joint positions.",
+    ],
+    recommended_sets: seed.sets ?? "3-4",
+    recommended_reps: seed.reps ?? "8-12",
+    xp_value: seed.xp ?? 90,
+    tags: [...(seed.tags ?? []), seed.category, primary.toLowerCase()],
+    created_at: "2026-06-30",
+    updated_at: "2026-06-30",
+  };
+};
+
+const ADDITIONAL_EXERCISES: ExerciseSeed[] = [
+  compactExercise({ id: "incline_barbell_chest_press", name: "Incline Barbell Chest Press", category: "chest", primary_muscle: "Upper Chest", secondary_muscles: ["Front Delts", "Triceps"], difficulty: "intermediate", equipment: ["barbell", "bench"], frame: "Incline_Dumbbell_Press", tags: ["compound", "strength", "upper chest"], xp: 125 }),
+  compactExercise({ id: "decline_barbell_chest_press", name: "Decline Barbell Chest Press", category: "chest", primary_muscle: "Lower Chest", secondary_muscles: ["Triceps", "Front Delts"], difficulty: "intermediate", equipment: ["barbell", "bench"], frame: "Decline_Barbell_Bench_Press", tags: ["compound", "strength", "lower chest"], xp: 120 }),
+  compactExercise({ id: "close_grip_chest_press", name: "Close-Grip Chest Press", category: "chest", primary_muscle: "Chest", secondary_muscles: ["Triceps", "Front Delts"], difficulty: "intermediate", equipment: ["barbell", "bench"], frame: "Close-Grip_Barbell_Bench_Press", tags: ["compound", "press", "triceps"], xp: 110 }),
+  compactExercise({ id: "pec_flyes", name: "Pec Flyes", category: "chest", primary_muscle: "Chest", secondary_muscles: ["Front Delts"], difficulty: "beginner", equipment: ["machine", "dumbbell"], frame: "Dumbbell_Flyes", tags: ["isolation", "hypertrophy"], reps: "10-15", xp: 80, type: "isolation" }),
+  compactExercise({ id: "bent_arm_pullover", name: "Bent Arm Pullover", category: "chest", primary_muscle: "Chest", secondary_muscles: ["Lats", "Triceps"], difficulty: "intermediate", equipment: ["dumbbell", "bench"], frame: "Bent-Arm_Dumbbell_Pullover", tags: ["stretch", "hypertrophy"], xp: 90 }),
+
+  compactExercise({ id: "behind_neck_lat_pulldown", name: "Behind-the-Neck Lat Pulldown", category: "lats", primary_muscle: "Lats", secondary_muscles: ["Biceps", "Rear Delts"], difficulty: "advanced", equipment: ["cable", "machine"], frame: "Wide-Grip_Rear_Pull-Up", tags: ["advanced", "lat width"], reps: "8-12", xp: 115 }),
+  compactExercise({ id: "t_bar_row", name: "T-Bar Row", category: "back", primary_muscle: "Upper Back", secondary_muscles: ["Lats", "Rear Delts", "Biceps"], difficulty: "intermediate", equipment: ["barbell"], frame: "T-Bar_Row_with_Handle", tags: ["compound", "thickness"], xp: 130 }),
+  compactExercise({ id: "seated_cable_row", name: "Seated Cable Row", category: "back", primary_muscle: "Upper Back", secondary_muscles: ["Lats", "Biceps", "Rear Delts"], difficulty: "beginner", equipment: ["cable", "machine"], frame: "Seated_Cable_Rows", tags: ["compound", "cable"], xp: 100 }),
+  compactExercise({ id: "one_arm_dumbbell_row", name: "One-Arm Dumbbell Row", category: "back", primary_muscle: "Lats", secondary_muscles: ["Upper Back", "Biceps", "Rear Delts"], difficulty: "beginner", equipment: ["dumbbell", "bench"], frame: "One-Arm_Dumbbell_Row", tags: ["unilateral", "back"], xp: 95 }),
+
+  compactExercise({ id: "dumbbell_curl", name: "Dumbbell Curl", category: "biceps", primary_muscle: "Biceps", secondary_muscles: ["Forearms"], difficulty: "beginner", equipment: ["dumbbell"], frame: "Dumbbell_Bicep_Curl", tags: ["isolation", "arms"], type: "isolation", xp: 70 }),
+  compactExercise({ id: "rope_hammer_curl", name: "Rope Hammer Curl", category: "biceps", primary_muscle: "Brachialis", secondary_muscles: ["Biceps", "Forearms"], difficulty: "beginner", equipment: ["cable"], frame: "Hammer_Curls", tags: ["isolation", "arms", "cable"], type: "isolation", xp: 75 }),
+  compactExercise({ id: "cable_reverse_curl", name: "Cable Reverse Curl", category: "biceps", primary_muscle: "Brachioradialis", secondary_muscles: ["Biceps", "Forearms"], difficulty: "intermediate", equipment: ["cable"], frame: "Reverse_Barbell_Curl", tags: ["forearms", "arms"], type: "isolation", xp: 80 }),
+  compactExercise({ id: "preacher_curl", name: "Preacher Curl", category: "biceps", primary_muscle: "Biceps", secondary_muscles: ["Brachialis"], difficulty: "intermediate", equipment: ["ez_bar", "bench"], frame: "Preacher_Curl", tags: ["isolation", "strict curl"], type: "isolation", xp: 85 }),
+  compactExercise({ id: "concentration_curl", name: "Concentration Curl", category: "biceps", primary_muscle: "Biceps", secondary_muscles: ["Forearms"], difficulty: "beginner", equipment: ["dumbbell"], frame: "Concentration_Curls", tags: ["isolation", "mind muscle"], type: "isolation", xp: 70 }),
+
+  compactExercise({ id: "machine_shoulder_press", name: "Machine Shoulder Press", category: "shoulders", primary_muscle: "Shoulders", secondary_muscles: ["Triceps", "Front Delts"], difficulty: "beginner", equipment: ["machine"], frame: "Barbell_Shoulder_Press", tags: ["compound", "machine"], xp: 100 }),
+  compactExercise({ id: "barbell_front_press", name: "Barbell Front Press", category: "front_delts", primary_muscle: "Front Delts", secondary_muscles: ["Triceps", "Upper Chest"], difficulty: "intermediate", equipment: ["barbell"], frame: "Barbell_Shoulder_Press", tags: ["compound", "press"], xp: 120 }),
+  compactExercise({ id: "barbell_behind_neck_press", name: "Barbell Behind-the-Neck Press", category: "shoulders", primary_muscle: "Shoulders", secondary_muscles: ["Triceps", "Upper Traps"], difficulty: "advanced", equipment: ["barbell"], frame: "Seated_Barbell_Military_Press", tags: ["advanced", "press"], xp: 135 }),
+  compactExercise({ id: "front_raise", name: "Front Raise", category: "front_delts", primary_muscle: "Front Delts", secondary_muscles: ["Upper Chest"], difficulty: "beginner", equipment: ["dumbbell"], frame: "Front_Dumbbell_Raise", tags: ["isolation", "front delts"], type: "isolation", xp: 65 }),
+  compactExercise({ id: "three_d_delt_raise", name: "3D Delt Raise", category: "shoulders", primary_muscle: "Shoulders", secondary_muscles: ["Rear Delts", "Side Delts", "Front Delts"], difficulty: "advanced", equipment: ["dumbbell"], frame: "Dumbbell_Lying_Rear_Lateral_Raise", tags: ["delts", "hypertrophy"], reps: "12-20", xp: 100 }),
+  compactExercise({ id: "upright_row", name: "Upright Row", category: "side_delts", primary_muscle: "Side Delts", secondary_muscles: ["Traps", "Biceps"], difficulty: "intermediate", equipment: ["barbell", "ez_bar"], frame: "Upright_Barbell_Row", tags: ["shoulder width", "traps"], xp: 90 }),
+
+  compactExercise({ id: "close_grip_bench_press", name: "Close-Grip Bench Press", category: "triceps", primary_muscle: "Triceps", secondary_muscles: ["Chest", "Front Delts"], difficulty: "intermediate", equipment: ["barbell", "bench"], frame: "Close-Grip_Barbell_Bench_Press", tags: ["compound", "arms"], xp: 115 }),
+  compactExercise({ id: "rope_pushdown", name: "Rope Pushdown", category: "triceps", primary_muscle: "Triceps", secondary_muscles: [], difficulty: "beginner", equipment: ["cable"], frame: "Triceps_Pushdown", tags: ["isolation", "cable"], type: "isolation", xp: 75 }),
+  compactExercise({ id: "single_arm_extension", name: "Single-Arm Extension", category: "triceps", primary_muscle: "Triceps", secondary_muscles: ["Core"], difficulty: "beginner", equipment: ["dumbbell", "cable"], frame: "Standing_One-Arm_Dumbbell_Triceps_Extension", tags: ["unilateral", "isolation"], type: "isolation", xp: 75 }),
+  compactExercise({ id: "overhead_two_arm_extension", name: "Overhead Two-Arm Extension", category: "triceps", primary_muscle: "Triceps", secondary_muscles: ["Shoulders"], difficulty: "intermediate", equipment: ["dumbbell"], frame: "Standing_Dumbbell_Triceps_Extension", tags: ["long head", "isolation"], type: "isolation", xp: 85 }),
+  compactExercise({ id: "reverse_grip_cable_pushdown", name: "Reverse-Grip Cable Pushdown", category: "triceps", primary_muscle: "Triceps", secondary_muscles: ["Forearms"], difficulty: "intermediate", equipment: ["cable"], frame: "Reverse_Grip_Triceps_Pushdown", tags: ["cable", "isolation"], type: "isolation", xp: 80 }),
+  compactExercise({ id: "v_bar_d_rod_pushdown", name: "V-Bar (D-Rod) Pushdown", category: "triceps", primary_muscle: "Triceps", secondary_muscles: [], difficulty: "beginner", equipment: ["cable"], frame: "Triceps_Pushdown_-_V-Bar_Attachment", tags: ["cable", "isolation", "v-bar"], type: "isolation", xp: 75 }),
+  compactExercise({ id: "tricep_kickback", name: "Tricep Kickback", category: "triceps", primary_muscle: "Triceps", secondary_muscles: ["Rear Delts"], difficulty: "beginner", equipment: ["dumbbell"], frame: "Tricep_Dumbbell_Kickback", tags: ["isolation", "arms"], type: "isolation", xp: 65 }),
+
+  compactExercise({ id: "leg_extension", name: "Leg Extension", category: "quads", primary_muscle: "Quadriceps", secondary_muscles: [], difficulty: "beginner", equipment: ["machine"], frame: "Leg_Extensions", tags: ["isolation", "quads"], type: "isolation", xp: 75 }),
+  compactExercise({ id: "leg_curl", name: "Leg Curl", category: "hamstrings", primary_muscle: "Hamstrings", secondary_muscles: ["Calves"], difficulty: "beginner", equipment: ["machine"], frame: "Lying_Leg_Curls", tags: ["isolation", "hamstrings"], type: "isolation", xp: 75 }),
+  compactExercise({ id: "walking_lunges", name: "Walking Lunges", category: "legs", primary_muscle: "Quadriceps", secondary_muscles: ["Glutes", "Hamstrings", "Calves"], difficulty: "intermediate", equipment: ["bodyweight", "dumbbell"], frame: "Barbell_Squat", tags: ["unilateral", "legs", "functional"], reps: "10-16 each side", xp: 105 }),
+
+  compactExercise({ id: "flat_crunch", name: "Flat Crunch", category: "abs", primary_muscle: "Abs", secondary_muscles: ["Hip Flexors"], difficulty: "beginner", equipment: ["bodyweight"], frame: "Crunches", tags: ["core", "beginner"], type: "isolation", reps: "12-20", xp: 50 }),
+  compactExercise({ id: "flat_leg_raise", name: "Flat Leg Raise", category: "abs", primary_muscle: "Lower Abs", secondary_muscles: ["Hip Flexors"], difficulty: "beginner", equipment: ["bodyweight"], frame: "Flat_Bench_Leg_Pull-In", tags: ["core", "lower abs"], reps: "10-15", xp: 60 }),
+  compactExercise({ id: "side_toe_touches", name: "Side Toe Touches", category: "obliques", primary_muscle: "Obliques", secondary_muscles: ["Abs"], difficulty: "beginner", equipment: ["bodyweight"], frame: "Alternate_Heel_Touchers", tags: ["core", "obliques"], reps: "16-30 total", xp: 50 }),
+  compactExercise({ id: "flutter_kicks", name: "Flutter Kicks", category: "abs", primary_muscle: "Lower Abs", secondary_muscles: ["Hip Flexors"], difficulty: "intermediate", equipment: ["bodyweight"], frame: "Flutter_Kicks", tags: ["core", "conditioning"], reps: "20-45 sec", xp: 70, workout_type: "conditioning" }),
+  compactExercise({ id: "machine_crunch", name: "Machine Crunch", category: "abs", primary_muscle: "Abs", secondary_muscles: ["Obliques"], difficulty: "beginner", equipment: ["machine"], frame: "Ab_Crunch_Machine", tags: ["machine", "core"], type: "isolation", xp: 75 }),
+
+  compactExercise({ id: "back_extension", name: "Back Extension", category: "lower_back", primary_muscle: "Lower Back", secondary_muscles: ["Glutes", "Hamstrings"], difficulty: "beginner", equipment: ["machine", "bodyweight"], frame: "Hyperextensions_Back_Extensions", tags: ["posterior chain", "lower back"], xp: 80 }),
+  compactExercise({ id: "hanging_knee_raise", name: "Hanging Knee Raise", category: "hip_flexors", primary_muscle: "Hip Flexors", secondary_muscles: ["Abs", "Grip"], difficulty: "intermediate", equipment: ["pull_up_bar"], frame: "Hanging_Leg_Raise", tags: ["core", "hip flexors"], reps: "8-15", xp: 85 }),
+  compactExercise({ id: "clean_and_jerk", name: "Clean and Jerk", category: "olympic_lifting", primary_muscle: "Full Body", secondary_muscles: ["Quads", "Glutes", "Shoulders", "Traps"], difficulty: "advanced", equipment: ["barbell"], frame: "Clean_and_Jerk", tags: ["olympic lifting", "power", "technical"], sets: "4-6", reps: "1-3", xp: 220, workout_type: "power" }),
+  compactExercise({ id: "power_snatch", name: "Power Snatch", category: "olympic_lifting", primary_muscle: "Full Body", secondary_muscles: ["Hamstrings", "Glutes", "Shoulders", "Traps"], difficulty: "advanced", equipment: ["barbell"], frame: "Power_Snatch", tags: ["olympic lifting", "power", "technical"], sets: "4-6", reps: "1-3", xp: 210, workout_type: "power" }),
+];
+
+const getExerciseType = (exercise: ExerciseSeed): ExerciseType => {
+  if (exercise.exercise_type) return exercise.exercise_type;
+  const tags = exercise.tags.join(" ").toLowerCase();
+  if (tags.includes("isolation")) return "isolation";
+  if (["biceps", "triceps", "forearms", "calves", "abs", "obliques", "rear_delts", "front_delts", "side_delts"].includes(exercise.category)) {
+    return tags.includes("compound") ? "compound" : "isolation";
+  }
+  return "compound";
+};
+
+const getWorkoutType = (exercise: ExerciseSeed): WorkoutType => {
+  if (exercise.workout_type) return exercise.workout_type;
+  const tags = exercise.tags.join(" ").toLowerCase();
+  if (["cardio"].includes(exercise.category)) return "endurance";
+  if (["hiit", "crossfit", "functional"].includes(exercise.category)) return "conditioning";
+  if (["mobility", "stretching", "yoga"].includes(exercise.category)) return "mobility";
+  if (exercise.category === "recovery") return "recovery";
+  if (["olympic_lifting"].includes(exercise.category) || tags.includes("power")) return "power";
+  if (tags.includes("calisthenics") || exercise.category === "calisthenics") return "skill";
+  if (tags.includes("hypertrophy") || getExerciseType(exercise) === "isolation") return "hypertrophy";
+  return "strength";
+};
+
+const defaultRest = (exercise: ExerciseSeed): string => {
+  if (exercise.category === "cardio" || exercise.category === "hiit") return "45-90 sec";
+  if (["mobility", "stretching", "yoga", "recovery"].includes(exercise.category)) return "30-60 sec";
+  if (exercise.difficulty === "advanced" || getExerciseType(exercise) === "compound") return "90-180 sec";
+  return "45-90 sec";
+};
+
+const caloriesEstimate = (exercise: ExerciseSeed): number => {
+  const base = exercise.difficulty === "advanced" ? 10 : exercise.difficulty === "intermediate" ? 8 : 6;
+  if (["cardio", "hiit", "crossfit", "full_body", "olympic_lifting"].includes(exercise.category)) return base + 5;
+  if (["mobility", "stretching", "yoga", "recovery"].includes(exercise.category)) return Math.max(3, base - 3);
+  return base;
+};
+
+const normalizeExercise = (exercise: ExerciseSeed, index: number): LibraryExercise => {
+  const frameId = exercise.demo_frame_id ?? EXERCISE_DEMO_FRAME_IDS[exercise.id];
+  const frameUrl = frameId ? demoFrame(frameId) : undefined;
+  const mediaUrl = frameUrl ?? exercise.thumbnail_url ?? exercise.gif_url ?? DEFAULT_EXERCISE_IMAGE;
+
+  return {
+    ...exercise,
+    exercise_type: getExerciseType(exercise),
+    workout_type: getWorkoutType(exercise),
+    gif_url: mediaUrl,
+    thumbnail_url: mediaUrl,
+    image_url: exercise.image_url ?? mediaUrl,
+    media_status: exercise.media_status ?? (frameId ? "verified" : "placeholder"),
+    breathing: exercise.breathing ?? [
+      "Inhale and brace before the hardest part of the rep.",
+      "Exhale smoothly as you drive, lift, pull, or squeeze.",
+      "Reset your breath before the next controlled repetition.",
+    ],
+    safety_tips: exercise.safety_tips ?? [
+      "Warm up the target joints before loading hard sets.",
+      "Keep the movement pain-free and stop if sharp discomfort appears.",
+      "Choose a load that lets you complete every rep with control.",
+    ],
+    beginner_modifications: exercise.beginner_modifications ?? [
+      "Use lighter load, shorter range, or assisted setup while learning the pattern.",
+      "Perform fewer sets and keep 2-3 reps in reserve.",
+    ],
+    advanced_variations: exercise.advanced_variations ?? [
+      "Add tempo control, pauses, unilateral work, or heavier progressive loading.",
+      "Use advanced variations only after the base movement feels consistent.",
+    ],
+    recommended_rest: exercise.recommended_rest ?? defaultRest(exercise),
+    calories_estimate: exercise.calories_estimate ?? caloriesEstimate(exercise),
+    popularity_score: exercise.popularity_score ?? Math.max(10, 100 - index),
+    created_at: exercise.created_at ?? "2026-06-01",
+    updated_at: exercise.updated_at ?? "2026-06-30",
+    aliases: exercise.aliases ?? [],
+    tags: Array.from(new Set([...exercise.tags, exercise.primary_muscle.toLowerCase(), ...exercise.secondary_muscles.map((m) => m.toLowerCase())])),
+  };
+};
+
+const normalizeExerciseLibrary = (exercises: ExerciseSeed[]): LibraryExercise[] => {
+  const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
+
+  return exercises
+    .map((exercise, index) => normalizeExercise(exercise, index))
+    .filter((exercise) => {
+      const nameKey = exercise.name.trim().toLowerCase();
+      if (seenIds.has(exercise.id) || seenNames.has(nameKey)) return false;
+      seenIds.add(exercise.id);
+      seenNames.add(nameKey);
+      return true;
+    });
+};
+
+export const EXERCISE_LIBRARY: LibraryExercise[] = normalizeExerciseLibrary([
+  ...BASE_EXERCISE_LIBRARY,
+  ...ADDITIONAL_EXERCISES,
+]);
+
 // ---------------------------------------------------------------------------
 // Derived utilities
 // ---------------------------------------------------------------------------
@@ -1447,6 +1688,13 @@ export const EXERCISE_CATEGORIES: { id: WorkoutCategory; label: string; glyph: s
   { id: "powerlifting", label: "Powerlifting",  glyph: "⚔" },
   { id: "crossfit",     label: "CrossFit",      glyph: "✠" },
   { id: "calisthenics", label: "Calisthenics",  glyph: "⬡" },
+  { id: "rear_delts", label: "Rear Delts", glyph: "RD" },
+  { id: "front_delts", label: "Front Delts", glyph: "FD" },
+  { id: "side_delts", label: "Side Delts", glyph: "SD" },
+  { id: "legs", label: "Legs", glyph: "LG" },
+  { id: "lower_back", label: "Lower Back", glyph: "LB" },
+  { id: "hip_flexors", label: "Hip Flexors", glyph: "HF" },
+  { id: "olympic_lifting", label: "Olympic Lifting", glyph: "OL" },
 ];
 
 export const EQUIPMENT_LABELS: Record<Equipment, string> = {
@@ -1459,6 +1707,9 @@ export const EQUIPMENT_LABELS: Record<Equipment, string> = {
   resistance_band:  "Resistance Band",
   pull_up_bar:      "Pull-Up Bar",
   bench:            "Bench",
+  ez_bar:           "EZ Bar",
+  medicine_ball:    "Medicine Ball",
+  foam_roller:      "Foam Roller",
   none:             "No Equipment",
 };
 
