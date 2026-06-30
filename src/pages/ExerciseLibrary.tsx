@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Pause, Play } from "lucide-react";
+import { AlertCircle, Maximize2, Pause, Play, Search, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,11 +16,48 @@ import {
   type WorkoutCategory,
   type Difficulty,
   type Equipment,
+  type ExerciseType,
+  type WorkoutType,
+  type SortOption,
 } from "@/data/exerciseLibrary";
 import { useAuth } from "@/hooks/useAuth";
 
 // ── Helpers ────────────────────────────────────────────────
 const ALL = "all";
+const FAVORITES_STORAGE_KEY = "mortalgyms.exerciseFavorites";
+
+const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
+  compound: "Compound",
+  isolation: "Isolation",
+};
+
+const WORKOUT_TYPE_LABELS: Record<WorkoutType, string> = {
+  strength: "Strength",
+  hypertrophy: "Hypertrophy",
+  power: "Power",
+  conditioning: "Conditioning",
+  mobility: "Mobility",
+  recovery: "Recovery",
+  skill: "Skill",
+  endurance: "Endurance",
+};
+
+const SORT_LABELS: Record<SortOption, string> = {
+  alphabetical: "Alphabetical",
+  popular: "Most Popular",
+  recent: "Recently Added",
+  xp: "Highest XP",
+  favorites: "Favorites",
+};
+
+const readStoredFavorites = (): string[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(window.localStorage.getItem(FAVORITES_STORAGE_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+};
 
 function DifficultyBadge({ d }: { d: Difficulty }) {
   return (
@@ -43,22 +80,28 @@ function ExerciseModal({
   exercise,
   open,
   onClose,
+  isFavorite,
+  onToggleFavorite,
 }: {
   exercise: LibraryExercise | null;
   open: boolean;
   onClose: () => void;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
 }) {
   const demoFrames = useMemo(() => (exercise ? getExerciseDemoFrames(exercise) : []), [exercise]);
   const [demoReady, setDemoReady] = useState(false);
   const [demoPlaying, setDemoPlaying] = useState(true);
   const [demoUnavailable, setDemoUnavailable] = useState(false);
   const [frameIndex, setFrameIndex] = useState(0);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     setDemoReady(false);
     setDemoPlaying(true);
     setDemoUnavailable(false);
     setFrameIndex(0);
+    setPreviewOpen(false);
   }, [exercise?.id]);
 
   useEffect(() => {
@@ -123,6 +166,7 @@ function ExerciseModal({
     ? exercise.thumbnail_url
     : demoFrames[frameIndex] ?? exercise.thumbnail_url;
   const demoLabel = demoUnavailable ? "Static Preview" : demoPlaying ? "Live Demo" : "Paused";
+  const categoryLabel = EXERCISE_CATEGORIES.find((c) => c.id === exercise.category)?.label ?? exercise.category;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -130,12 +174,32 @@ function ExerciseModal({
         <ScrollArea className="h-full max-h-[92vh]">
           <div className="p-6">
             <DialogHeader className="mb-4">
-              <DialogTitle className="font-display text-2xl uppercase tracking-widest text-gold">
-                {exercise.name}
-              </DialogTitle>
+              <div className="flex items-start justify-between gap-3">
+                <DialogTitle className="font-display text-2xl uppercase tracking-widest text-gold">
+                  {exercise.name}
+                </DialogTitle>
+                <button
+                  type="button"
+                  onClick={onToggleFavorite}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                    isFavorite
+                      ? "border-primary bg-primary/20 text-primary"
+                      : "border-border bg-card/60 text-muted-foreground hover:border-primary/60 hover:text-primary"
+                  }`}
+                  title={isFavorite ? "Remove favorite" : "Add favorite"}
+                >
+                  <Star className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+                </button>
+              </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="rounded border border-gold/30 bg-gold/10 px-2 py-0.5 text-[10px] font-display uppercase tracking-widest text-gold">
+                  {categoryLabel}
+                </span>
                 <DifficultyBadge d={exercise.difficulty} />
                 <XpBadge xp={exercise.xp_value} />
+                <span className="rounded border border-border bg-card/60 px-2 py-0.5 text-[10px] font-display uppercase tracking-widest text-muted-foreground">
+                  {EXERCISE_TYPE_LABELS[exercise.exercise_type]}
+                </span>
                 {exercise.equipment.slice(0, 3).map((eq) => (
                   <span key={eq} className="rounded border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-[10px] font-display uppercase tracking-widest text-secondary">
                     {EQUIPMENT_LABELS[eq]}
@@ -164,6 +228,13 @@ function ExerciseModal({
                 {/* Controls overlay */}
                 <div className="absolute bottom-3 right-3 flex gap-2">
                   <button
+                    onClick={() => setPreviewOpen(true)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
+                    title="Full screen preview"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={togglePlay}
                     disabled={demoUnavailable || demoFrames.length < 2}
                     className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-50"
@@ -176,11 +247,16 @@ function ExerciseModal({
                   {demoUnavailable && <AlertCircle className="h-3 w-3" />}
                   {demoLabel}
                 </div>
+                {exercise.media_status === "placeholder" && (
+                  <div className="absolute top-3 right-3 rounded bg-black/60 px-2 py-1 text-[10px] font-display uppercase tracking-widest text-white/70 backdrop-blur-sm">
+                    Media Fallback
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Muscles */}
-            <div className="mb-5 grid grid-cols-2 gap-4">
+            <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-lg border border-border bg-card/60 p-3">
                 <p className="mb-1 font-display text-[10px] uppercase tracking-widest text-muted-foreground">Primary</p>
                 <p className="font-display text-sm text-primary">{exercise.primary_muscle}</p>
@@ -199,6 +275,18 @@ function ExerciseModal({
                 <p className="mb-1 font-display text-[10px] uppercase tracking-widest text-muted-foreground">Reps</p>
                 <p className="font-display text-sm text-foreground">{exercise.recommended_reps}</p>
               </div>
+              <div className="rounded-lg border border-border bg-card/60 p-3">
+                <p className="mb-1 font-display text-[10px] uppercase tracking-widest text-muted-foreground">Rest</p>
+                <p className="font-display text-sm text-foreground">{exercise.recommended_rest}</p>
+              </div>
+              <div className="rounded-lg border border-border bg-card/60 p-3">
+                <p className="mb-1 font-display text-[10px] uppercase tracking-widest text-muted-foreground">Calories</p>
+                <p className="font-display text-sm text-foreground">~{exercise.calories_estimate}/set</p>
+              </div>
+              <div className="rounded-lg border border-border bg-card/60 p-3">
+                <p className="mb-1 font-display text-[10px] uppercase tracking-widest text-muted-foreground">Type</p>
+                <p className="font-display text-sm text-foreground">{WORKOUT_TYPE_LABELS[exercise.workout_type]}</p>
+              </div>
             </div>
 
             {/* Instructions */}
@@ -214,6 +302,13 @@ function ExerciseModal({
                   </li>
                 ))}
               </ol>
+            </div>
+
+            <div className="mb-5 grid gap-4 md:grid-cols-2">
+              <InfoList title="Breathing" tone="secondary" items={exercise.breathing} />
+              <InfoList title="Safety Tips" tone="primary" items={exercise.safety_tips} />
+              <InfoList title="Beginner Mods" tone="muted" items={exercise.beginner_modifications} />
+              <InfoList title="Advanced Variations" tone="gold" items={exercise.advanced_variations} />
             </div>
 
             {/* Common Mistakes */}
@@ -237,6 +332,16 @@ function ExerciseModal({
                 </span>
               ))}
             </div>
+
+            <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+              <DialogContent className="max-w-5xl border-border bg-black/95 p-2">
+                <img
+                  src={demoSrc || exercise.image_url}
+                  alt={`${exercise.name} full screen preview`}
+                  className="max-h-[85vh] w-full rounded-lg object-contain"
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </ScrollArea>
       </DialogContent>
@@ -244,15 +349,55 @@ function ExerciseModal({
   );
 }
 
+function InfoList({ title, items, tone }: { title: string; items: string[]; tone: "primary" | "secondary" | "gold" | "muted" }) {
+  const toneClass =
+    tone === "primary" ? "text-primary" :
+    tone === "secondary" ? "text-secondary" :
+    tone === "gold" ? "text-gold" : "text-muted-foreground";
+
+  return (
+    <div className="rounded-lg border border-border bg-card/50 p-3">
+      <p className={`mb-2 font-display text-[10px] uppercase tracking-widest ${toneClass}`}>{title}</p>
+      <ul className="space-y-1.5">
+        {items.map((item) => (
+          <li key={item} className="text-xs leading-relaxed text-foreground/75">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 // ── Exercise Card ──────────────────────────────────────────
-function ExerciseCard({ exercise, onClick }: { exercise: LibraryExercise; onClick: () => void }) {
+function ExerciseCard({
+  exercise,
+  onClick,
+  isFavorite,
+  onToggleFavorite,
+}: {
+  exercise: LibraryExercise;
+  onClick: () => void;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+}) {
   const [imgError, setImgError] = useState(false);
   const previewFrames = useMemo(() => getExerciseDemoFrames(exercise), [exercise]);
   const previewSrc = previewFrames[0] ?? exercise.thumbnail_url;
+  const categoryLabel = EXERCISE_CATEGORIES.find((c) => c.id === exercise.category)?.label ?? exercise.category;
 
   return (
-    <button
+    <article
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      aria-label={exercise.name}
       className="group relative overflow-hidden rounded-xl border border-border bg-card/60 text-left transition-all duration-200 hover:-translate-y-1 hover:border-primary/60 hover:bg-surface-raised hover:shadow-lg hover:shadow-primary/10 active:scale-[0.98]"
     >
       {/* Thumbnail */}
@@ -272,6 +417,21 @@ function ExerciseCard({ exercise, onClick }: { exercise: LibraryExercise; onClic
         <div className="absolute top-2 right-2">
           <XpBadge xp={exercise.xp_value} />
         </div>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleFavorite();
+          }}
+          className={`absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur-sm transition-colors ${
+            isFavorite
+              ? "border-primary bg-primary/30 text-primary"
+              : "border-white/20 bg-black/50 text-white/70 hover:text-primary"
+          }`}
+          title={isFavorite ? "Remove favorite" : "Add favorite"}
+        >
+          <Star className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+        </button>
         {/* Play hint */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
           <div className="rounded-full bg-black/60 p-3 text-white backdrop-blur-sm">
@@ -289,15 +449,21 @@ function ExerciseCard({ exercise, onClick }: { exercise: LibraryExercise; onClic
           {exercise.primary_muscle}
           {exercise.secondary_muscles.length > 0 && ` · ${exercise.secondary_muscles[0]}`}
         </p>
+        <p className="mt-1 text-[10px] font-display uppercase tracking-widest text-secondary/80 line-clamp-1">
+          {categoryLabel} / {EXERCISE_TYPE_LABELS[exercise.exercise_type]}
+        </p>
         <div className="mt-2 flex flex-wrap gap-1">
           {exercise.equipment.slice(0, 2).map((eq) => (
             <span key={eq} className="rounded border border-border/60 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-widest text-muted-foreground">
               {EQUIPMENT_LABELS[eq]}
             </span>
           ))}
+          <span className="rounded border border-border/60 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-widest text-muted-foreground">
+            {exercise.recommended_reps}
+          </span>
         </div>
       </div>
-    </button>
+    </article>
   );
 }
 
@@ -309,8 +475,14 @@ const ExerciseLibrary = () => {
   const [activeCategory, setActiveCategory] = useState<WorkoutCategory | typeof ALL>(ALL);
   const [activeDifficulty, setActiveDifficulty] = useState<Difficulty | typeof ALL>(ALL);
   const [activeEquipment, setActiveEquipment] = useState<Equipment | typeof ALL>(ALL);
+  const [activeExerciseType, setActiveExerciseType] = useState<ExerciseType | typeof ALL>(ALL);
+  const [activeWorkoutType, setActiveWorkoutType] = useState<WorkoutType | typeof ALL>(ALL);
+  const [sortBy, setSortBy] = useState<SortOption>("alphabetical");
+  const [favorites, setFavorites] = useState<string[]>(readStoredFavorites);
   const [selectedExercise, setSelectedExercise] = useState<LibraryExercise | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+
+  const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
 
   // Derive all equipment options present in the library
   const allEquipment = useMemo(() => {
@@ -319,25 +491,78 @@ const ExerciseLibrary = () => {
     return Array.from(set);
   }, []);
 
+  const allWorkoutTypes = useMemo(() => {
+    const set = new Set<WorkoutType>();
+    EXERCISE_LIBRARY.forEach((e) => set.add(e.workout_type));
+    return Array.from(set);
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return EXERCISE_LIBRARY.filter((e) => {
+    const matches = EXERCISE_LIBRARY.filter((e) => {
       if (activeCategory !== ALL && e.category !== activeCategory) return false;
       if (activeDifficulty !== ALL && e.difficulty !== activeDifficulty) return false;
       if (activeEquipment !== ALL && !e.equipment.includes(activeEquipment)) return false;
-      if (q && !e.name.toLowerCase().includes(q) && !e.primary_muscle.toLowerCase().includes(q) && !e.tags.join(" ").toLowerCase().includes(q)) return false;
+      if (activeExerciseType !== ALL && e.exercise_type !== activeExerciseType) return false;
+      if (activeWorkoutType !== ALL && e.workout_type !== activeWorkoutType) return false;
+      if (q) {
+        const categoryLabel = EXERCISE_CATEGORIES.find((c) => c.id === e.category)?.label ?? e.category;
+        const haystack = [
+          e.name,
+          categoryLabel,
+          e.primary_muscle,
+          ...e.secondary_muscles,
+          ...e.aliases,
+          ...e.tags,
+          ...e.equipment.map((eq) => EQUIPMENT_LABELS[eq]),
+          EXERCISE_TYPE_LABELS[e.exercise_type],
+          WORKOUT_TYPE_LABELS[e.workout_type],
+        ].join(" ").toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       return true;
     });
-  }, [search, activeCategory, activeDifficulty, activeEquipment]);
+
+    return [...matches].sort((a, b) => {
+      if (sortBy === "favorites") {
+        const favoriteDelta = Number(favoriteSet.has(b.id)) - Number(favoriteSet.has(a.id));
+        if (favoriteDelta !== 0) return favoriteDelta;
+      }
+      if (sortBy === "popular") return b.popularity_score - a.popularity_score;
+      if (sortBy === "recent") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (sortBy === "xp") return b.xp_value - a.xp_value;
+      return a.name.localeCompare(b.name);
+    });
+  }, [search, activeCategory, activeDifficulty, activeEquipment, activeExerciseType, activeWorkoutType, sortBy, favoriteSet]);
 
   const clearFilters = () => {
     setSearch("");
     setActiveCategory(ALL);
     setActiveDifficulty(ALL);
     setActiveEquipment(ALL);
+    setActiveExerciseType(ALL);
+    setActiveWorkoutType(ALL);
+    setSortBy("alphabetical");
   };
 
-  const hasFilters = activeCategory !== ALL || activeDifficulty !== ALL || activeEquipment !== ALL || search !== "";
+  const toggleFavorite = (exerciseId: string) => {
+    setFavorites((current) => {
+      const next = current.includes(exerciseId)
+        ? current.filter((id) => id !== exerciseId)
+        : [...current, exerciseId];
+      window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const hasFilters =
+    activeCategory !== ALL ||
+    activeDifficulty !== ALL ||
+    activeEquipment !== ALL ||
+    activeExerciseType !== ALL ||
+    activeWorkoutType !== ALL ||
+    sortBy !== "alphabetical" ||
+    search !== "";
   const shouldRedirectToAuth = !authLoading && !user;
 
   useEffect(() => {
@@ -367,12 +592,15 @@ const ExerciseLibrary = () => {
       <div className="sticky top-0 z-20 border-b border-border bg-surface-deep/90 px-4 py-3 backdrop-blur-xl">
         <div className="mx-auto max-w-4xl space-y-3">
           <div className="flex gap-2">
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search exercises, muscles, tags..."
-              className="flex-1 bg-surface-raised border-border font-display text-sm placeholder:text-muted-foreground"
-            />
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search exercises, muscles, equipment..."
+                className="bg-surface-raised border-border pl-9 font-display text-sm placeholder:text-muted-foreground"
+              />
+            </div>
             <Button
               variant="outline"
               onClick={() => setShowFilters((p) => !p)}
@@ -430,6 +658,65 @@ const ExerciseLibrary = () => {
                       }`}
                     >
                       {EQUIPMENT_LABELS[eq]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Exercise Type */}
+              <div>
+                <p className="mb-2 font-display text-[10px] uppercase tracking-widest text-muted-foreground">Exercise Type</p>
+                <div className="flex flex-wrap gap-2">
+                  {([ALL, "compound", "isolation"] as const).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setActiveExerciseType(type)}
+                      className={`rounded border px-3 py-1 font-display text-xs uppercase tracking-widest transition-all ${
+                        activeExerciseType === type ? "border-primary bg-primary/20 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {type === ALL ? "All" : EXERCISE_TYPE_LABELS[type]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Workout Type */}
+              <div>
+                <p className="mb-2 font-display text-[10px] uppercase tracking-widest text-muted-foreground">Workout Type</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setActiveWorkoutType(ALL)}
+                    className={`rounded border px-3 py-1 font-display text-xs uppercase tracking-widest transition-all ${
+                      activeWorkoutType === ALL ? "border-primary bg-primary/20 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {allWorkoutTypes.map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setActiveWorkoutType(type)}
+                      className={`rounded border px-3 py-1 font-display text-xs uppercase tracking-widest transition-all ${
+                        activeWorkoutType === type ? "border-primary bg-primary/20 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {WORKOUT_TYPE_LABELS[type]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Sort */}
+              <div>
+                <p className="mb-2 font-display text-[10px] uppercase tracking-widest text-muted-foreground">Sort</p>
+                <div className="flex flex-wrap gap-2">
+                  {(Object.keys(SORT_LABELS) as SortOption[]).map((sort) => (
+                    <button
+                      key={sort}
+                      onClick={() => setSortBy(sort)}
+                      className={`rounded border px-3 py-1 font-display text-xs uppercase tracking-widest transition-all ${
+                        sortBy === sort ? "border-primary bg-primary/20 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {SORT_LABELS[sort]}
                     </button>
                   ))}
                 </div>
@@ -502,6 +789,8 @@ const ExerciseLibrary = () => {
                 key={exercise.id}
                 exercise={exercise}
                 onClick={() => setSelectedExercise(exercise)}
+                isFavorite={favoriteSet.has(exercise.id)}
+                onToggleFavorite={() => toggleFavorite(exercise.id)}
               />
             ))}
           </div>
@@ -513,6 +802,8 @@ const ExerciseLibrary = () => {
         exercise={selectedExercise}
         open={selectedExercise !== null}
         onClose={() => setSelectedExercise(null)}
+        isFavorite={selectedExercise ? favoriteSet.has(selectedExercise.id) : false}
+        onToggleFavorite={() => selectedExercise && toggleFavorite(selectedExercise.id)}
       />
     </div>
   );
