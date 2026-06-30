@@ -27,7 +27,18 @@ Deno.serve(async (req) => {
     const { data: hero } = await supabase.from("heroes").select("*").eq("user_id", user.id).maybeSingle();
     if (!hero) return new Response(JSON.stringify({ error: "Hero not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const systemPrompt = `You are a master strength coach for a mythic-fantasy fitness RPG. Build a weekly workout schedule fully personalized to the hero. Respond ONLY via the provided tool. Use compound lifts as backbone, accessories for weak points, and avoid exercises that aggravate the hero's injuries. Match training days to "available_days". Use evidence-based set/rep schemes. Keep names of exercises real and familiar.`;
+    const libraryCatalog = [
+      "Flat Barbell Chest Press", "Incline Barbell Chest Press", "Decline Barbell Chest Press", "Close-Grip Chest Press", "Pec Flyes", "Bent Arm Pullover",
+      "Front Lat Pulldown", "Behind-the-Neck Lat Pulldown", "T-Bar Row", "Seated Cable Row", "Barbell Row", "One-Arm Dumbbell Row", "Pull-Up", "Deadlift",
+      "Barbell Curl", "Dumbbell Curl", "Rope Hammer Curl", "Cable Reverse Curl", "Preacher Curl", "Concentration Curl",
+      "Machine Shoulder Press", "Barbell Front Press", "Barbell Behind-the-Neck Press", "Front Raise", "Side Lateral Raise", "3D Delt Raise", "Upright Row", "Barbell Shrugs", "Face Pull",
+      "Close-Grip Bench Press", "Rope Pushdown", "Single-Arm Extension", "Overhead Two-Arm Extension", "Reverse-Grip Cable Pushdown", "V-Bar (D-Rod) Pushdown", "Tricep Kickback", "Skull Crusher",
+      "Barbell Squat", "Leg Press", "Leg Extension", "Leg Curl", "Walking Lunges", "Standing Calf Raise", "Romanian Deadlift", "Hip Thrust",
+      "Flat Crunch", "Flat Leg Raise", "Side Toe Touches", "Flutter Kicks", "Machine Crunch", "Plank", "Russian Twist", "Hanging Knee Raise",
+      "Back Extension", "Running (15 min)", "Burpee", "Kettlebell Swing", "Clean and Jerk", "Power Snatch", "Thruster", "Mountain Climbers", "Turkish Get-Up",
+    ];
+
+    const systemPrompt = `You are a master strength coach for a mythic-fantasy fitness RPG. Build a weekly workout schedule fully personalized to the hero. Respond ONLY via the provided tool. Use compound lifts as backbone, accessories for weak points, and avoid exercises that aggravate the hero's injuries. Match training days to "available_days". Use evidence-based set/rep schemes. Prefer exact exercise names from the provided Mortal Gyms Exercise Library catalog so users can open demonstrations in the Library. If an injury or equipment limit blocks a movement, choose the closest safer catalog alternative and explain it in notes. Avoid repeating the same exercise pattern excessively across the week.`;
     const userPrompt = `Hero profile:
 - Class: ${hero.class}
 - Goal: ${hero.goal}
@@ -39,6 +50,7 @@ Deno.serve(async (req) => {
 - Days/week available: ${hero.available_days}
 - Sleep: ${hero.sleep_quality}, Stress: ${hero.stress_level}
 - Injuries: ${(hero.injuries ?? []).join(", ") || "none"}
+- Mortal Gyms Exercise Library catalog: ${libraryCatalog.join("; ")}
 
 Generate a routine matching ${hero.available_days} training days. Use mon/tue/wed style day labels.`;
 
